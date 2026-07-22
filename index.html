@@ -1727,12 +1727,10 @@
       state.samples.push(sample);
       pruneSamples();
 
-      if (!warmUp) {
-        if (status !== 'ok') {
-          addLog('timeout', 'log_probeError', { type: t(status === 'timeout' ? 'timeoutEvent' : 'failedEvent'), error: error || status, timeout: state.settings.timeoutMs });
-        } else if (spike) {
-          addLog('spike', 'log_spikeDetected', { latency: latency.toFixed(1) });
-        }
+      if (status !== 'ok') {
+        addLog('timeout', 'log_probeError', { type: t(status === 'timeout' ? 'timeoutEvent' : 'failedEvent'), error: error || status, timeout: state.settings.timeoutMs });
+      } else if (!warmUp && spike) {
+        addLog('spike', 'log_spikeDetected', { latency: latency.toFixed(1) });
       }
 
       updateBaselines();
@@ -1765,8 +1763,9 @@
       updateSettingsFromInputs();
       state.running = true;
       addLog('info', 'log_monitoringStarted');
-      pollLoop();
+      renderLog();
       updateUI({ skipChart: true });
+      pollLoop();
     }
 
     function pause() {
