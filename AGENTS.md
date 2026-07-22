@@ -60,3 +60,6 @@
 2. **Git Commit 規範**：
    * 訊息前綴需符合標示：`feat:`, `fix:`, `refactor:`, `docs:`。
    * 推送前必須驗證 remote 分支與追蹤目標 (`origin/master`)。
+3. **Git Push 嚴格授權機制 (Strict Git Push Protocol)**：
+   * ⚠️ **未經使用者明確口頭或文字授權（如「請 push」、「同意推送」），AI Agent 絕對禁止主動執行 `git push` 指令！**
+   * 本機可依規範完成 `git commit` 並回報變更細節與語法驗證結果，必須等待使用者明確指示授權後方可推送到遠端倉庫。
