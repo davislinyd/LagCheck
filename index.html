@@ -585,11 +585,6 @@
             </div>
           </div>
           <div class="form-grid">
-            <div class="action-grid">
-              <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
-              <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
-            </div>
-            <div id="actionToast" class="toast"></div>
             <div class="number-grid" style="grid-template-columns: repeat(2, 1fr);">
               <label class="field"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
               <label class="field"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="500" max="10000" step="100" /><span>ms</span></span></label>
@@ -600,6 +595,11 @@
               <span><span class="toggle-title" data-i18n="stressTitle">壅塞延遲模擬</span><span class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
               <input id="stressToggle" type="checkbox" />
             </label>
+            <div class="action-grid">
+              <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
+              <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
+            </div>
+            <div id="actionToast" class="toast"></div>
             <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
             <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
             <label class="field"><span class="field-label" data-i18n="downloadLabel">壅塞模擬下載 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
