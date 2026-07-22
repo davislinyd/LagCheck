@@ -292,7 +292,7 @@
     }
     .side-panel { display: grid; grid-template-rows: minmax(0, 1.2fr) minmax(100px, 0.8fr); gap: 0; padding: 0; overflow: hidden; }
     .settings-card, .log-card { min-width: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-    .settings-card { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); overflow-y: auto; min-height: 0; }
+    .settings-card { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); overflow-x: hidden !important; overflow-y: auto; min-height: 0; }
     .settings-card::-webkit-scrollbar { width: 6px; }
     .settings-card::-webkit-scrollbar-thumb { border-radius: 99px; background: #cbd5e1; }
     .settings-card .panel-head { margin-bottom: 6px !important; }
@@ -301,6 +301,7 @@
     .field { display: grid; gap: 3px; }
     .field-label { height: 16px; color: var(--soft); font-size: 11px; font-weight: 780; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .input, .number-wrap { width: 100%; height: 31px; border: 1px solid var(--line); border-radius: 9px; color: var(--text); background: #f8fafc; outline: none; }
+    .input:disabled, .number-wrap:has(input:disabled) { opacity: 0.6; cursor: not-allowed; background: #e2e8f0; }
     .input { padding: 0 9px; font-size: 11px; }
     .input:focus, .number-wrap:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, .10); }
     .number-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -318,33 +319,54 @@
       border-radius: 9px;
       background: #f8fafc;
       position: relative;
-      cursor: help;
     }
-    .toggle-row::after {
+    .field[data-tooltip], .toggle-row[data-tooltip] { position: relative; }
+    .field[data-tooltip]::after, .toggle-row[data-tooltip]::after {
       content: attr(data-tooltip);
       position: absolute;
-      bottom: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%) translateY(4px);
       padding: 6px 10px;
-      background: rgba(15, 23, 42, 0.92);
-      color: #ffffff;
+      border-radius: 7px;
+      background: #0f172a;
+      color: #f8fafc;
       font-size: 11px;
       font-weight: 500;
       line-height: 1.4;
       white-space: normal;
       width: max-content;
       max-width: 240px;
-      border-radius: 6px;
-      box-shadow: 0 8px 16px -3px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      pointer-events: none;
       opacity: 0;
       visibility: hidden;
-      pointer-events: none;
-      transition: opacity 0.15s ease, transform 0.15s ease;
+      transition: opacity 0.12s ease-out, transform 0.12s ease-out;
       z-index: 1000;
-      text-align: center;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
     }
-    .toggle-row:hover::after {
+    .field[data-tooltip]::after {
+      top: calc(100% + 4px);
+      transform: translateY(-3px);
+    }
+    .field[data-tooltip]:hover::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    #fieldInterval[data-tooltip]::after, #fieldFailover[data-tooltip]::after {
+      left: 0;
+      right: auto;
+    }
+    #fieldTimeout[data-tooltip]::after, #fieldPercentileN[data-tooltip]::after {
+      right: 0;
+      left: auto;
+    }
+    #fieldAutoStop[data-tooltip]::after, .toggle-row[data-tooltip]::after {
+      top: auto;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%) translateY(3px);
+    }
+    #fieldAutoStop[data-tooltip]:hover::after, .toggle-row[data-tooltip]:hover::after {
       opacity: 1;
       visibility: visible;
       transform: translateX(-50%) translateY(0);
@@ -357,8 +379,12 @@
     .btn.secondary-green { color: #047857; border-color: #bbf7d0; background: #ecfdf5; }
     .toast { min-height: 28px; padding: 6px 8px; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--soft); background: #f8fafc; font-size: 11px; line-height: 15px; }
     .toast:empty { display: none; }
-    .log-card { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
-    .log-head { height: 48px; display: grid; grid-template-columns: minmax(0, 1fr) 52px; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line-soft); }
+    .log-card { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; overflow: hidden; }
+    .log-head { height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line-soft); cursor: pointer; user-select: none; transition: background .15s ease; min-width: 0; }
+    .log-head:hover { background: #f8fafc; }
+    .log-card.collapsed .event-log { display: none !important; }
+    .log-card.collapsed .log-head { border-bottom: 0; }
+    .side-panel:has(.log-card.collapsed) { grid-template-rows: minmax(0, 1fr) auto !important; }
     .log-title { margin: 0; font-size: 14px; line-height: 17px; font-weight: 820; }
     .log-subtitle { margin: 1px 0 0; color: var(--muted); font-size: 10px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .clear-btn { height: 28px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: #fff; font-size: 10px; font-weight: 780; }
@@ -512,7 +538,7 @@
         <div>
           <div class="title-row">
             <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.8</span>
+            <span class="version" id="appVersion" title="Version">v1.0.9</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合辦公室作業與倉庫物流診斷。</p>
           <div class="client-info">
@@ -589,13 +615,14 @@
           </div>
           <div class="form-grid">
             <div class="number-grid" style="grid-template-columns: repeat(2, 1fr);">
-              <label class="field"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
-              <label class="field"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="500" max="10000" step="100" /><span>ms</span></span></label>
-              <label class="field"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="1" max="20" step="1" /><span data-i18n="timesUnit">次</span></span></label>
-              <label class="field"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="10" max="300" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
+              <label id="fieldInterval" class="field" data-tooltip="採樣間隔 (限制範圍: 200 ~ 2000 ms)"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
+              <label id="fieldTimeout" class="field" data-tooltip="逾時門檻 (限制範圍: 1000 ~ 5000 ms)"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="1000" max="5000" step="100" /><span>ms</span></span></label>
+              <label id="fieldFailover" class="field" data-tooltip="失敗切換門檻 (限制範圍: 3 ~ 10 次)"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="3" max="10" step="1" /><span data-i18n="timesUnit">次</span></span></label>
+              <label id="fieldPercentileN" class="field" data-tooltip="樣本數 N (限制範圍: 30 ~ 500 筆)"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="30" max="500" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
+              <label id="fieldAutoStop" class="field" style="grid-column: span 2;" data-tooltip="自動停止 (限制: 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="10" selected data-i18n="autoStop10">10 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
             </div>
             <label id="stressToggleRow" class="toggle-row" for="stressToggle">
-              <span><span class="toggle-title" data-i18n="stressTitle">壅塞延遲模擬</span><span class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
+              <span><span class="toggle-title" data-i18n="stressTitle">模擬下載速度</span><span id="stressHelp" class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
               <input id="stressToggle" type="checkbox" />
             </label>
             <div class="action-grid">
@@ -605,14 +632,17 @@
             <div id="actionToast" class="toast"></div>
             <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
             <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
-            <label class="field"><span class="field-label" data-i18n="downloadLabel">壅塞模擬下載 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
+            <label class="field"><span class="field-label" data-i18n="downloadLabel">下載測試檔 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
           </div>
         </section>
 
         <section class="log-card">
-          <div class="log-head">
-            <div><h2 class="log-title" data-i18n="eventLogTitle">網路事件紀錄</h2><p class="log-subtitle" data-i18n="eventLogHelp">尖峰、逾時、離線狀態會記錄在這裡。</p></div>
-            <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
+          <div id="logHead" class="log-head">
+            <div style="min-width:0; flex:1;"><h2 class="log-title" data-i18n="eventLogTitle">網路事件紀錄</h2><p class="log-subtitle" data-i18n="eventLogHelp">尖峰、逾時、離線狀態會記錄在這裡。</p></div>
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
+              <button id="toggleLogCollapseBtn" class="clear-btn" type="button" aria-expanded="true" data-i18n="collapse">收合</button>
+            </div>
           </div>
           <div id="eventLog" class="event-log"></div>
         </section>
@@ -633,9 +663,10 @@
             <li><strong data-i18n="f1Title">即時連線探測</strong>：<span data-i18n="f1Desc">每秒探測一次，支援 P50/P95 百分位圖表與雙端點 Failover 自動切換。</span></li>
             <li><strong data-i18n="f2Title">抖動與尖峰記錄</strong>：<span data-i18n="f2Desc">滾動計算網路 Jitter 與 MAD，自動擷取異常脈衝尖峰。</span></li>
             <li><strong data-i18n="f3Title">失敗／逾時可靠度</strong>：<span data-i18n="f3Desc">結合 Wilson 信心區間，精準反映真實丟包與 Timeout。</span></li>
-            <li><strong data-i18n="f4Title">壅塞模擬測試</strong>：<span data-i18n="f4Desc">並行大流量背景下載，評估網路在負載下的 Bufferbloat 衝擊。</span></li>
+            <li><strong data-i18n="f4Title">模擬下載速度</strong>：<span data-i18n="f4Desc">並行大流量背景下載，評估網路在負載下的 Bufferbloat 衝擊。</span></li>
             <li><strong data-i18n="f5Title">分頁省電保護</strong>：<span data-i18n="f5Desc">切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。</span></li>
           </ul>
+          <div style="margin-top:10px; padding:8px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#1e40af; font-size:12px; font-weight:600;" data-i18n="settingsBoundaryDesc">💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。</div>
         </div>
         <div class="guide-section">
           <h3><span style="color:var(--amber);">📊</span> <span data-i18n="gradingHead">企業評級機制標準 (0 - 100 分)</span></h3>
@@ -706,15 +737,22 @@
         chartTitlePercentile: '即時百分位分佈',
         chartHelpPercentile: '依過去 N 筆採樣由小到大排序，顯示連線延遲分佈與 P50、P75、P90、P95、P99 標記。',
         percentileNLabel: '樣本數 (N)', sampleUnit: '筆', percentileDataset: '連線延遲 ms',
+        intervalTooltip: '採樣間隔 (限制範圍: 200 ~ 2000 ms)',
+        timeoutTooltip: '逾時門檻 (限制範圍: 1000 ~ 5000 ms)',
+        failoverTooltip: '失敗切換門檻 (限制範圍: 3 ~ 10 次)',
+        percentileNTooltip: '樣本數 N (限制範圍: 30 ~ 500 筆)',
+        autoStopTooltip: '自動停止 (限制: 5, 10, 30, 60 分鐘或無限制)',
+        settingsBoundaryDesc: '💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。',
+        autoStopLabel: '自動停止', autoStop5: '5 分鐘', autoStop10: '10 分鐘', autoStop30: '30 分鐘', autoStop60: '60 分鐘', autoStopNever: '無限制 (永遠執行)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
         start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: '測試設定',
         settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
         activeEndpointLabel: '當前探測端點',
-        endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '壅塞模擬下載 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
-        stressTitle: '壅塞延遲模擬', stressHelp: '背景下載會與延遲測量並行。',
-        exportScreenshot: '匯出/複製 截圖', exportCsv: '匯出 CSV', eventLogTitle: '網路事件紀錄',
+        endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '下載測試檔 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
+        stressTitle: '模擬下載速度', stressHelp: '背景下載會與延遲測量並行。',
+        exportScreenshot: '匯出/複製 截圖', exportCsv: '匯出 CSV', eventLogTitle: '網路事件紀錄', collapse: '收合', expand: '展開',
         eventLogHelp: '尖峰、逾時、離線狀態會記錄在這裡。', clear: '清除',
-        live: '即時監測', paused: '已暫停', offline: '離線', stress: '壅塞測試中', idle: '閒置', underLoad: '壅塞中',
+        live: '即時監測', paused: '已暫停', offline: '離線', stress: '下載測試中', idle: '閒置', underLoad: '下載中',
         sentShort: '次', noEvents: '暫無事件。開始測試後，尖峰與逾時會自動記錄。',
         latencyDataset: '連線延遲 ms', jitterDataset: '抖動 ms', tooltipTimeout: '逾時', axisMs: '毫秒',
         copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。', generatingScreenshot: '正在產生畫面截圖...', screenshotDone: '畫面截圖已下載並複製到剪貼本！',
@@ -723,10 +761,11 @@
         log_probeError: '探測 {type}: {error} ({timeout}ms 門檻)',
         log_failoverSwitched: '[備援機制] 連續失敗達門檻，自動切換探測端點至 {host}',
         log_spikeDetected: '偵測到延遲尖峰: {latency} ms',
-        log_stressStarted: '壅塞延遲模擬已開始，並行下載數: {count}',
-        log_stressCapReached: '[壅塞模擬] 累積下載已達安全上限 ({cap}MB)，已自動停止保護網路與流量。',
-        stressWarningConfirm: '⚠️ 警告：開啟「壅塞延遲模擬」將發起背景大流量下載，會佔用大量網路頻寬與瀏覽器系統資源。確定要開啟嗎？',
-        log_stressWorkerFailed: '壅塞下載工作失敗 {id}: {error}',
+        log_stressStarted: '下載速度測試已開始，並行下載數: {count}',
+        log_stressCapReached: '[下載測試] 累積下載已達安全上限 ({cap}MB)，平均下載速度: {speed} MB/s。',
+        log_autoStopped: '[安全保護] 已連續監測 {min} 分鐘，已自動停止以節省資源。',
+        stressWarningConfirm: '⚠️ 警告：開啟「模擬下載速度」將發起背景大流量下載，會佔用大量網路頻寬與瀏覽器系統資源。確定要開啟嗎？',
+        log_stressWorkerFailed: '背景下載工作失敗 {id}: {error}',
         log_browserOffline: '瀏覽器回報網路離線。',
         log_browserOnline: '瀏覽器回報網路恢復連線。',
         reportTitle: 'Network Stability Report', period: '期間', endpoint: '端點', grade: '評級',
@@ -742,9 +781,9 @@
         f1Title: '即時連線探測', f1Desc: '每秒探測一次，支援 P50/P95 百分位圖表與雙端點 Failover 自動切換。',
         f2Title: '抖動與尖峰記錄', f2Desc: '滾動計算網路 Jitter 與 MAD，自動擷取異常脈衝尖峰。',
         f3Title: '失敗／逾時可靠度', f3Desc: '結合 Wilson 信心區間，精準反映真實丟包與 Timeout。',
-        f4Title: '壅塞模擬測試', f4Desc: '並行大流量背景下載，評估網路在負載壓迫下的 Bufferbloat 衝擊（建議情境：視訊會議/上傳大檔卡頓排障、倉庫 PDA 掃碼連線抗壓測試、路由器 QoS 流量管理評估）。',
+        f4Title: '模擬下載速度', f4Desc: '並行大流量背景下載，評估網路在頻寬被吃滿時的下載速度與延遲衝擊（建議情境：視訊會議/上傳大檔卡頓排障、倉庫 PDA 掃碼連線抗壓測試、路由器 QoS 流量管理評估）。',
         f5Title: '分頁省電保護', f5Desc: '切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。',
-        stressToggleTooltip: '模擬大流量下載，檢驗頻寬吃滿時 (如看影片/下載大檔) 網路是否會卡頓',
+        stressToggleTooltip: '模擬背景大流量下載，檢驗頻寬吃滿時 (如看影片/下載大檔) 網路與傳輸速度表現',
         gradingHead: '企業評級機制標準 (0 - 100 分)',
         gradingDesc: '評級綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)，並包含「短板瓶頸封頂機制 (Bottleneck Cap)」，防範嚴重丟包或斷線被優良延遲虛高掩蓋：',
         thGrade: '評級', thScore: '分數', thDesc: '實用品質體驗與建議',
@@ -774,15 +813,22 @@
         chartTitlePercentile: 'Live Percentiles',
         chartHelpPercentile: 'Shows sorted latency distribution of the last N samples with P50, P75, P90, P95, P99 marked.',
         percentileNLabel: 'Samples (N)', sampleUnit: 'pts', percentileDataset: 'Latency ms',
+        intervalTooltip: 'Sample Interval (Range: 200 ~ 2000 ms)',
+        timeoutTooltip: 'Timeout Limit (Range: 1000 ~ 5000 ms)',
+        failoverTooltip: 'Failover Limit (Range: 3 ~ 10 fails)',
+        percentileNTooltip: 'Sample Size N (Range: 30 ~ 500 pts)',
+        autoStopTooltip: 'Auto-Stop (Limit: 5, 10, 30, 60 min or unlimited)',
+        settingsBoundaryDesc: '💡 Input Limits: Interval (200~2000ms), Timeout (1000~5000ms), Failover (3~10 fails), Sample Size N (30~500 pts).',
+        autoStopLabel: 'Auto-Stop', autoStop5: '5 Min', autoStop10: '10 Min', autoStop30: '30 Min', autoStop60: '60 Min', autoStopNever: 'Unlimited (Continuous)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
         start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Test Settings',
         settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
         activeEndpointLabel: 'Active Endpoint',
-        endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Congestion Download URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
-        stressTitle: 'Congestion Simulation', stressHelp: 'Background downloads run alongside latency measurement.',
-        exportScreenshot: 'Export/Copy PNG', exportCsv: 'Export CSV', eventLogTitle: 'Network Event Log',
+        endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Download Test URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
+        stressTitle: 'Simulate Download Speed', stressHelp: 'Background downloads run alongside latency measurement.',
+        exportScreenshot: 'Export/Copy PNG', exportCsv: 'Export CSV', eventLogTitle: 'Network Event Log', collapse: 'Collapse', expand: 'Expand',
         eventLogHelp: 'Spikes, timeouts, and offline state are recorded here.', clear: 'Clear',
-        live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Under Load', idle: 'Idle', underLoad: 'Load',
+        live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Download Test', idle: 'Idle', underLoad: 'Load',
         sentShort: 'sent', noEvents: 'No events yet. Spikes and timeouts will appear here after testing starts.',
         latencyDataset: 'Latency ms', jitterDataset: 'Jitter ms', tooltipTimeout: 'timeout', axisMs: 'Milliseconds',
         copied: 'Markdown report copied.', csvDone: 'CSV export generated.', generatingScreenshot: 'Generating screenshot PNG...', screenshotDone: 'Screenshot downloaded & copied to clipboard!',
@@ -791,10 +837,11 @@
         log_probeError: 'Probe {type}: {error} ({timeout}ms threshold)',
         log_failoverSwitched: '[Failover] Threshold reached. Switched active probe to {host}',
         log_spikeDetected: 'Latency spike detected: {latency} ms',
-        log_stressStarted: 'Congestion simulation started with concurrent downloads: {count}',
-        log_stressCapReached: '[Congestion Test] Reached safety cap of {cap}MB. Automatically stopped to protect bandwidth.',
-        stressWarningConfirm: '⚠️ Warning: Enabling Congestion Simulation initiates heavy background downloads, consuming significant bandwidth and system resources. Continue?',
-        log_stressWorkerFailed: 'Congestion download worker failed {id}: {error}',
+        log_stressStarted: 'Download speed simulation started with concurrent downloads: {count}',
+        log_stressCapReached: '[Download Test] Reached safety cap of {cap}MB. Average download speed: {speed} MB/s.',
+        log_autoStopped: '[Protection] Monitoring reached {min} min limit and auto-stopped.',
+        stressWarningConfirm: '⚠️ Warning: Enabling "Simulate Download Speed" initiates heavy background downloads. Continue?',
+        log_stressWorkerFailed: 'Download worker failed {id}: {error}',
         log_browserOffline: 'Browser reported network offline.',
         log_browserOnline: 'Browser reported network online.',
         reportTitle: 'Network Stability Report', period: 'Period', endpoint: 'Endpoint', grade: 'Grade',
@@ -810,9 +857,9 @@
         f1Title: 'Live Probe', f1Desc: 'Probes every second with P50/P95 percentile chart & dual-endpoint Failover.',
         f2Title: 'Jitter & Spike Logging', f2Desc: 'Calculates rolling Jitter/MAD and logs latency spikes automatically.',
         f3Title: 'Reliability & Loss', f3Desc: 'Applies Wilson score interval to accurately gauge timeouts and loss.',
-        f4Title: 'Congestion Simulation', f4Desc: 'Runs background download streams to measure Bufferbloat impact (Recommended for: video call dropouts, warehouse PDA scanning troubleshooting, testing router QoS throttling).',
+        f4Title: 'Simulate Download Speed', f4Desc: 'Runs background download streams to evaluate download speed and latency impact under full bandwidth load.',
         f5Title: 'Background Safeguard', f5Desc: 'Pauses canvas rendering in hidden tabs to save CPU & GPU resources.',
-        stressToggleTooltip: 'Simulates heavy download traffic to check network stability under full bandwidth load.',
+        stressToggleTooltip: 'Simulates background download traffic to check speed and network stability under full bandwidth load.',
         gradingHead: 'Enterprise Grading Scale (0 - 100)',
         gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
         thGrade: 'Grade', thScore: 'Score', thDesc: 'Experience & Recommendations',
@@ -834,7 +881,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.8';
+    const APP_VERSION = 'v1.0.9';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -894,6 +941,7 @@
       timeoutMs: 2000,
       failoverThreshold: 5,
       percentileN: 200,
+      autoStopMin: 10,
       maxSamples: 360,
       jitterWindow: 20,
       stressConcurrency: 2,
@@ -903,7 +951,8 @@
 
     const state = {
       lang: 'zh', chartMode: 'live', running: false, stress: false, loopTimer: null, inFlightProbe: null,
-      stressControllers: new Set(), stressBytes: 0, sent: 0, failed: 0, samples: [], eventLog: [],
+      stressControllers: new Set(), stressBytes: 0, stressStartTime: null, stressCompleted: false, stressAvgSpeed: null,
+      startTime: null, sent: 0, failed: 0, samples: [], eventLog: [],
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
       underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
       settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined'
@@ -919,10 +968,11 @@
       maxLatency: $('maxLatency'), latencyTrend: $('latencyTrend'), jitter: $('jitter'), lossRate: $('lossRate'),
       requestCount: $('requestCount'), failCount: $('failCount'), maxSpike: $('maxSpike'), stressState: $('stressState'),
       bufferbloatDelta: $('bufferbloatDelta'), startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'),
-      clearLogBtn: $('clearLogBtn'), activeEndpointBadge: $('activeEndpointBadge'), endpointInput: $('endpointInput'),
-      fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
-      timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'),
-      stressToggle: $('stressToggle'), stressToggleRow: $('stressToggleRow'), exportScreenshotBtn: $('exportScreenshotBtn'), exportCsvBtn: $('exportCsvBtn'),
+      clearLogBtn: $('clearLogBtn'), logHead: $('logHead'), toggleLogCollapseBtn: $('toggleLogCollapseBtn'), activeEndpointBadge: $('activeEndpointBadge'),
+      fieldInterval: $('fieldInterval'), fieldTimeout: $('fieldTimeout'), fieldFailover: $('fieldFailover'), fieldPercentileN: $('fieldPercentileN'), fieldAutoStop: $('fieldAutoStop'),
+      endpointInput: $('endpointInput'), fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
+      timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'), autoStopSelect: $('autoStopSelect'),
+      stressToggle: $('stressToggle'), stressToggleRow: $('stressToggleRow'), stressHelp: $('stressHelp'), exportScreenshotBtn: $('exportScreenshotBtn'), exportCsvBtn: $('exportCsvBtn'),
       actionToast: $('actionToast'), eventLog: $('eventLog'), chartTitle: $('chartTitle'), chartHelp: $('chartHelp'),
       modeLiveBtn: $('modeLiveBtn'), modePercentileBtn: $('modePercentileBtn'),
       chartMissing: $('chartMissing'), summaryStrip: document.querySelector('.summary-strip'), latencyChart: $('latencyChart')
@@ -949,7 +999,8 @@
           intervalMs: state.settings.intervalMs,
           timeoutMs: state.settings.timeoutMs,
           failoverThreshold: state.settings.failoverThreshold,
-          percentileN: state.settings.percentileN
+          percentileN: state.settings.percentileN,
+          autoStopMin: state.settings.autoStopMin
         }));
       } catch { /* ignore quota / private mode */ }
     }
@@ -963,9 +1014,10 @@
       state.settings.fallbackEndpoint = normalizeUrl(saved.fallbackEndpoint, DEFAULTS.fallbackEndpoint);
       state.settings.downloadUrl = normalizeUrl(saved.downloadUrl, DEFAULTS.downloadUrl);
       state.settings.intervalMs = clampNumber(saved.intervalMs, 200, 2000, DEFAULTS.intervalMs);
-      state.settings.timeoutMs = clampNumber(saved.timeoutMs, 500, 10000, DEFAULTS.timeoutMs);
-      state.settings.failoverThreshold = clampNumber(saved.failoverThreshold, 1, 20, DEFAULTS.failoverThreshold);
-      state.settings.percentileN = clampNumber(saved.percentileN, 10, 300, DEFAULTS.percentileN);
+      state.settings.timeoutMs = clampNumber(saved.timeoutMs, 1000, 5000, DEFAULTS.timeoutMs);
+      state.settings.failoverThreshold = clampNumber(saved.failoverThreshold, 3, 10, DEFAULTS.failoverThreshold);
+      state.settings.percentileN = clampNumber(saved.percentileN, 30, 500, DEFAULTS.percentileN);
+      state.settings.autoStopMin = clampNumber(saved.autoStopMin, 0, 1440, DEFAULTS.autoStopMin);
     }
 
     function createChartStub() {
@@ -992,6 +1044,7 @@
     els.timeoutInput.value = state.settings.timeoutMs;
     els.failoverThresholdInput.value = state.settings.failoverThreshold;
     els.percentileNInput.value = state.settings.percentileN;
+    if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
 
     if (!state.chartReady && els.chartMissing) {
       els.chartMissing.dataset.visible = 'true';
@@ -1091,8 +1144,17 @@
       els.langToggle.setAttribute('aria-label', t('langToggleAria'));
       if (els.latencyChart) els.latencyChart.setAttribute('aria-label', t('chartAria'));
       if (els.stressToggleRow) {
-        els.stressToggleRow.title = t('stressToggleTooltip');
         els.stressToggleRow.setAttribute('data-tooltip', t('stressToggleTooltip'));
+      }
+      if (els.fieldInterval) els.fieldInterval.setAttribute('data-tooltip', t('intervalTooltip'));
+      if (els.fieldTimeout) els.fieldTimeout.setAttribute('data-tooltip', t('timeoutTooltip'));
+      if (els.fieldFailover) els.fieldFailover.setAttribute('data-tooltip', t('failoverTooltip'));
+      if (els.fieldPercentileN) els.fieldPercentileN.setAttribute('data-tooltip', t('percentileNTooltip'));
+      if (els.fieldAutoStop) els.fieldAutoStop.setAttribute('data-tooltip', t('autoStopTooltip'));
+      if (els.toggleLogCollapseBtn) {
+        const logCard = els.eventLog ? els.eventLog.closest('.log-card') : null;
+        const isCollapsed = logCard && logCard.classList.contains('collapsed');
+        els.toggleLogCollapseBtn.textContent = isCollapsed ? t('expand') : t('collapse');
       }
       setChartMode(state.chartMode, { skipRebuild: false });
       renderLog();
@@ -1120,9 +1182,10 @@
       state.settings.fallbackEndpoint = normalizeUrl(els.fallbackEndpointInput.value, DEFAULTS.fallbackEndpoint);
       state.settings.downloadUrl = normalizeUrl(els.downloadInput.value, DEFAULTS.downloadUrl);
       state.settings.intervalMs = clampNumber(els.intervalInput.value, 200, 2000, DEFAULTS.intervalMs);
-      state.settings.timeoutMs = clampNumber(els.timeoutInput.value, 500, 10000, DEFAULTS.timeoutMs);
-      state.settings.failoverThreshold = clampNumber(els.failoverThresholdInput.value, 1, 20, DEFAULTS.failoverThreshold);
-      state.settings.percentileN = clampNumber(els.percentileNInput.value, 10, 300, DEFAULTS.percentileN);
+      state.settings.timeoutMs = clampNumber(els.timeoutInput.value, 1000, 5000, DEFAULTS.timeoutMs);
+      state.settings.failoverThreshold = clampNumber(els.failoverThresholdInput.value, 3, 10, DEFAULTS.failoverThreshold);
+      state.settings.percentileN = clampNumber(els.percentileNInput.value, 30, 500, DEFAULTS.percentileN);
+      if (els.autoStopSelect) state.settings.autoStopMin = clampNumber(els.autoStopSelect.value, 0, 1440, DEFAULTS.autoStopMin);
       els.endpointInput.value = state.settings.endpoint;
       els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
       els.downloadInput.value = state.settings.downloadUrl;
@@ -1563,7 +1626,8 @@
       const stats = currentStats();
       const grade = gradeFor(stats);
       setGradeBadge(grade);
-      setStatus(!state.running ? 'paused' : state.stress ? 'stress' : navigator.onLine ? 'live' : 'offline');
+      const isActivelyStressDownloading = state.running && state.stress && !state.stressCompleted;
+      setStatus(!state.running ? 'paused' : isActivelyStressDownloading ? 'stress' : navigator.onLine ? 'live' : 'offline');
       els.currentLatency.textContent = fmt(stats.current);
       els.avgLatency.textContent = `${fmt(stats.avg)} ms`;
       els.minLatency.textContent = `${fmt(stats.min)} ms`;
@@ -1598,6 +1662,42 @@
         els.startBtn.classList.add('primary');
         els.startBtn.textContent = t('start');
         els.pauseBtn.classList.remove('pause-active');
+      }
+
+      const inputsToToggle = [
+        els.endpointInput, els.fallbackEndpointInput, els.downloadInput,
+        els.intervalInput, els.timeoutInput, els.failoverThresholdInput,
+        els.percentileNInput, els.autoStopSelect, els.stressToggle
+      ];
+      inputsToToggle.filter(Boolean).forEach((el) => {
+        el.disabled = state.running;
+      });
+      if (els.stressToggleRow) {
+        els.stressToggleRow.style.opacity = state.running ? '0.6' : '1';
+        els.stressToggleRow.style.pointerEvents = state.running ? 'none' : 'auto';
+      }
+
+      if (els.stressHelp) {
+        if (state.stressCompleted) {
+          const mb = (state.stressBytes / (1024 * 1024)).toFixed(1);
+          const speed = state.stressAvgSpeed || '0.0';
+          els.stressHelp.textContent = state.lang === 'zh'
+            ? `已達上限 ${mb} MB (平均速度: ${speed} MB/s)`
+            : `Cap ${mb} MB reached (Avg speed: ${speed} MB/s)`;
+        } else if (state.stress && state.running) {
+          const durationSec = Math.max(0.1, (Date.now() - (state.stressStartTime || Date.now())) / 1000);
+          const mbDownloaded = (state.stressBytes / (1024 * 1024)).toFixed(1);
+          const currentSpeed = ((state.stressBytes / (1024 * 1024)) / durationSec).toFixed(1);
+          els.stressHelp.textContent = state.lang === 'zh'
+            ? `背景下載中 (${mbDownloaded} / 100 MB · ${currentSpeed} MB/s)`
+            : `Downloading... (${mbDownloaded} / 100 MB · ${currentSpeed} MB/s)`;
+        } else if (els.stressToggle && els.stressToggle.checked) {
+          els.stressHelp.textContent = state.lang === 'zh'
+            ? `已準備就緒，按下開始後進行模擬`
+            : `Ready. Press Start to run simulation.`;
+        } else {
+          els.stressHelp.textContent = t('stressHelp');
+        }
       }
 
       let currentHost = '—';
@@ -1773,6 +1873,14 @@
 
     async function pollLoop() {
       if (!state.running) return;
+      if (state.startTime && state.settings.autoStopMin > 0) {
+        const elapsedMin = (Date.now() - state.startTime) / 60000;
+        if (elapsedMin >= state.settings.autoStopMin) {
+          addLog('info', 'log_autoStopped', { min: state.settings.autoStopMin });
+          pause();
+          return;
+        }
+      }
       const started = performance.now();
       await measureLatency();
       scheduleNext(Math.max(0, state.settings.intervalMs - (performance.now() - started)));
@@ -1782,13 +1890,18 @@
       if (state.running) return;
       updateSettingsFromInputs();
       state.running = true;
+      state.startTime = Date.now();
       addLog('info', 'log_monitoringStarted');
       renderLog();
       updateUI({ skipChart: true });
+      if (els.stressToggle && els.stressToggle.checked) {
+        startStress();
+      }
       pollLoop();
     }
 
     function pause() {
+      pauseStress();
       state.running = false;
       clearTimeout(state.loopTimer);
       if (state.inFlightProbe) state.inFlightProbe.abort('paused');
@@ -1814,11 +1927,22 @@
 
     const STRESS_MAX_BYTES = 100 * 1024 * 1024; // 100MB 安全流量上限
 
+    function finishStressCap() {
+      const durationSec = Math.max(0.1, (Date.now() - (state.stressStartTime || Date.now())) / 1000);
+      const mb = state.stressBytes / (1024 * 1024);
+      const speed = (mb / durationSec).toFixed(1);
+      state.stressAvgSpeed = speed;
+      state.stressCompleted = true;
+      for (const controller of state.stressControllers) controller.abort('stress cap reached');
+      state.stressControllers.clear();
+      addLog('warn', 'log_stressCapReached', { cap: 100, speed });
+      updateUI({ skipChart: true });
+    }
+
     async function stressWorker(workerId, controller) {
-      while (state.stress && !controller.signal.aborted) {
+      while (state.stress && state.running && !state.stressCompleted && !controller.signal.aborted) {
         if (state.stressBytes >= STRESS_MAX_BYTES) {
-          addLog('warn', 'log_stressCapReached', { cap: 100 });
-          pauseStress();
+          finishStressCap();
           break;
         }
         try {
@@ -1826,21 +1950,31 @@
           url.searchParams.set('_lagcheck_stress', `${Date.now()}_${workerId}_${Math.random().toString(16).slice(2)}`);
           const response = await fetch(url.toString(), { cache: 'no-store', credentials: 'omit', signal: controller.signal });
           const buf = await response.arrayBuffer();
-          state.stressBytes += (buf ? buf.byteLength : 5000000);
+          if (buf && buf.byteLength) {
+            state.stressBytes += buf.byteLength;
+            if (state.stressBytes >= STRESS_MAX_BYTES) {
+              finishStressCap();
+              break;
+            }
+            updateUI({ skipChart: true });
+          }
         } catch (error) {
-          if (!controller.signal.aborted && state.stress) {
+          if (!controller.signal.aborted && state.stress && state.running && !state.stressCompleted) {
             addLog('timeout', 'log_stressWorkerFailed', { id: workerId, error: error?.message || 'error' });
-            await sleep(800);
+            await sleep(1200);
           }
         }
       }
     }
 
     function startStress() {
-      if (state.stress) return;
+      if (state.stress && !state.stressCompleted) return;
       updateSettingsFromInputs();
       state.stress = true;
+      state.stressCompleted = false;
       state.stressBytes = 0;
+      state.stressStartTime = Date.now();
+      state.stressAvgSpeed = null;
       state.underLoadAvg = null;
       addLog('info', 'log_stressStarted', { count: state.settings.stressConcurrency });
       for (let i = 1; i <= state.settings.stressConcurrency; i += 1) {
@@ -1851,11 +1985,12 @@
       updateUI({ skipChart: true });
     }
 
-    function pauseStress() {
+    function pauseStress({ uncheck = false } = {}) {
       state.stress = false;
+      state.stressCompleted = false;
       for (const controller of state.stressControllers) controller.abort('stress stopped');
       state.stressControllers.clear();
-      els.stressToggle.checked = false;
+      if (uncheck && els.stressToggle) els.stressToggle.checked = false;
       updateUI({ skipChart: true });
     }
 
@@ -2027,13 +2162,29 @@
     els.pauseBtn.addEventListener('click', pause);
     els.resetBtn.addEventListener('click', reset);
     els.clearLogBtn.addEventListener('click', () => { state.eventLog = []; renderLog(); });
+    function toggleLogCollapse() {
+      const logCard = els.eventLog ? els.eventLog.closest('.log-card') : null;
+      if (!logCard) return;
+      const isCollapsed = logCard.classList.toggle('collapsed');
+      if (els.toggleLogCollapseBtn) {
+        els.toggleLogCollapseBtn.textContent = isCollapsed ? t('expand') : t('collapse');
+        els.toggleLogCollapseBtn.setAttribute('aria-expanded', !isCollapsed ? 'true' : 'false');
+      }
+    }
+
+    if (els.logHead) {
+      els.logHead.addEventListener('click', (e) => {
+        if (e.target && (e.target.id === 'clearLogBtn' || e.target.closest('#clearLogBtn'))) return;
+        toggleLogCollapse();
+      });
+    }
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
     els.exportCsvBtn.addEventListener('click', exportCsv);
     els.stressToggle.addEventListener('change', (e) => {
       if (e.target.checked) {
         const ok = window.confirm(t('stressWarningConfirm'));
         if (ok) {
-          startStress();
+          if (state.running) startStress();
         } else {
           e.target.checked = false;
         }
@@ -2041,7 +2192,7 @@
         pauseStress();
       }
     });
-    [els.endpointInput, els.fallbackEndpointInput, els.downloadInput, els.intervalInput, els.timeoutInput, els.failoverThresholdInput, els.percentileNInput]
+    [els.endpointInput, els.fallbackEndpointInput, els.downloadInput, els.intervalInput, els.timeoutInput, els.failoverThresholdInput, els.percentileNInput, els.autoStopSelect]
       .filter(Boolean)
       .forEach((input) => input.addEventListener('change', () => {
         updateSettingsFromInputs();
