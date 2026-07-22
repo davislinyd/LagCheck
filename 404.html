@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to LagCheck...</title>
+  <script>
+    (function() {
+      var path = window.location.pathname;
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      var regex = /^\/[Ll][Aa][Gg][Cc][Hh][Ee][Cc][Kk](\/.*)?$/;
+      if (regex.test(path)) {
+        var correctedPath = path.replace(/^\/[Ll][Aa][Gg][Cc][Hh][Ee][Cc][Kk]/, '/LagCheck');
+        var targetUrl = window.location.origin + correctedPath + search + hash;
+        window.location.replace(targetUrl);
+      } else {
+        window.location.replace('https://davislinyd.github.io/LagCheck/');
+      }
+    })();
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc; color: #0f172a; }
+    .card { text-align: center; padding: 24px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    a { color: #2563eb; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <p>正在自動前往 <strong>LagCheck</strong>...</p>
+    <p><a href="https://davislinyd.github.io/LagCheck/">點此手動跳轉 (Click here if not redirected)</a></p>
+  </div>
+</body>
+</html>
