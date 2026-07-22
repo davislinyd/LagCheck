@@ -1001,7 +1001,13 @@
       return state.samples.filter((s) => s.status === 'ok' && Number.isFinite(s.latency) && (includeWarmUp || !s.warmUp));
     }
 
-    function recentSamples(windowMs = state.settings.chartWindowMs, includeWarmUp = false) {
+    function getChartWindowMs() {
+      const n = state.settings.percentileN || 100;
+      const interval = state.settings.intervalMs || 1000;
+      return n * interval;
+    }
+
+    function recentSamples(windowMs = getChartWindowMs(), includeWarmUp = false) {
       const cutoff = Date.now() - windowMs;
       const recent = state.samples.filter((s) => s.timestamp >= cutoff && (includeWarmUp || !s.warmUp));
       if (recent.length) return recent;
@@ -1099,7 +1105,7 @@
 
     function currentStats() {
       const sessionValid = validSamples(false);
-      const recent = recentSamples(state.settings.chartWindowMs, false);
+      const recent = recentSamples(getChartWindowMs(), false);
       const valid = recent.filter((s) => s.status === 'ok' && Number.isFinite(s.latency));
       const values = valid.map((s) => s.latency);
       const allValues = sessionValid.map((s) => s.latency);
