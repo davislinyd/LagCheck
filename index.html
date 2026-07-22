@@ -855,11 +855,26 @@
       const offsetStr = `UTC${sign}${h}:${m}`;
 
       const clientOsEl = document.getElementById('clientOs');
-      const clientTzEl = document.getElementById('clientTz');
       if (clientOsEl) clientOsEl.textContent = `${os} · ${browser}`;
-      if (clientTzEl) clientTzEl.textContent = `${tz} (${offsetStr})`;
     }
+
+    function updateClientClock() {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const offset = -now.getTimezoneOffset();
+      const sign = offset >= 0 ? '+' : '-';
+      const h = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
+      const m = String(Math.abs(offset) % 60).padStart(2, '0');
+      const offsetStr = `UTC${sign}${h}:${m}`;
+
+      const clientTzEl = document.getElementById('clientTz');
+      if (clientTzEl) clientTzEl.textContent = `${timeStr} · ${tz} (${offsetStr})`;
+    }
+
     detectClientInfo();
+    updateClientClock();
+    setInterval(updateClientClock, 1000);
     const STORAGE_KEY = 'lagcheck-light-v1';
     const DEFAULTS = Object.freeze({
       endpoint: 'https://www.cloudflare.com/cdn-cgi/trace',
