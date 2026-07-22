@@ -507,7 +507,7 @@
         <div>
           <div class="title-row">
             <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.6</span>
+            <span class="version" id="appVersion" title="Version">v1.0.6-1</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合遊戲、會議、遠端桌面與直播排障。</p>
           <div class="client-info">
@@ -677,11 +677,11 @@
               <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0;" data-i18n="formulaWeightsText">Score = 35%×延遲 + 25%×抖動 + 30%×遺失率 + 10%×尖峰率</code>
             </li>
             <li><strong data-i18n="formulaCapTitle">短板瓶頸封頂防護 (Bottleneck Cap)</strong>：<br>
-              <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0;" data-i18n="formulaCapText">FinalScore = min( 加權總分, 遺失率分數 + 18, 延遲分數 + 18 )</code>
-              <span style="font-size:0.8rem; color:#64748b;" data-i18n="formulaCapDesc">當連線嚴重斷線時（遺失率 0分），總分將被硬性鎖定在最高 18 分 (F 級)，防範木桶缺陷。</span>
+              <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0;" data-i18n="formulaCapText">FinalScore = min( 加權總分, 遺失率分數 + 25, 延遲分數 + 25 )</code>
+              <span style="font-size:0.8rem; color:#64748b;" data-i18n="formulaCapDesc">當連線嚴重斷線時（遺失率 0分），總分將被硬性鎖定在最高 25 分 (F 級)，防範木桶缺陷。</span>
             </li>
             <li><strong data-i18n="formulaRangesTitle">各指標滿分/零分區間門檻</strong>：<br>
-              <span style="font-size:0.8rem; color:#64748b;" data-i18n="formulaRangesText">• 延遲 (p50/p95): 180~480ms / 300~750ms &nbsp; • 抖動: 40~130ms &nbsp; • 遺失率: 2.5~12% &nbsp; • 尖峰率: 8~32%</span>
+              <span style="font-size:0.8rem; color:#64748b;" data-i18n="formulaRangesText">• 延遲 (p50/p95): 220~600ms / 400~900ms &nbsp; • 抖動: 60~180ms &nbsp; • 遺失率: 4~16% &nbsp; • 尖峰率: 12~40%</span>
             </li>
           </ul>
         </div>
@@ -742,7 +742,7 @@
         gradingDesc: '評級綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)，並包含「短板瓶頸封頂機制 (Bottleneck Cap)」，防範嚴重丟包或斷線被優良延遲虛高掩蓋：',
         thGrade: '評級', thScore: '分數', thDesc: '實用品質體驗與建議',
         sDesc: '極佳：超低延遲 (<50ms)，無任何連線中斷。',
-        aDesc: '良好：延遲 180ms~480ms 內，適合辦公室日常、線上會議與倉庫 PDA 掃碼列印。',
+        aDesc: '良好：延遲 220ms~600ms 內，適合辦公室日常、線上會議與倉庫 PDA 掃碼列印。',
         bDesc: '勉強：偶有延遲波動，高頻即時操作可能微有感知。',
         cDesc: '不穩定／差：高延遲或頻繁 Timeout，請檢查網路連線。',
         warmUpRuleDesc: '💡 動態解鎖門檻：當樣本數 (N) > 100 時，需累積採樣達 60 次才解鎖顯示評級；當 N ≤ 100 時則需達 30 次，防範初期數據過少造成評級失真。',
@@ -752,10 +752,10 @@
         formulaWeightsTitle: '指標加權總分算式',
         formulaWeightsText: 'Score = 35% × 延遲 + 25% × 抖動 + 30% × 遺失率 + 10% × 尖峰率',
         formulaCapTitle: '短板瓶頸封頂防護 (Bottleneck Cap)',
-        formulaCapText: 'FinalScore = min( 加權總分, 遺失率分數 + 18, 延遲分數 + 18 )',
-        formulaCapDesc: '當連線嚴重斷線時（遺失率 0分），總分將被硬性鎖定在最高 18 分 (F 級)，防範木桶缺陷。',
+        formulaCapText: 'FinalScore = min( 加權總分, 遺失率分數 + 25, 延遲分數 + 25 )',
+        formulaCapDesc: '當連線嚴重斷線時（遺失率 0分），總分將被硬性鎖定在最高 25 分 (F 級)，防範木桶缺陷。',
         formulaRangesTitle: '各指標滿分 / 零分區間門檻',
-        formulaRangesText: '• 延遲 (p50/p95): 180~480ms / 300~750ms   • 抖動 (Jitter/MAD): 40~130ms / 30~100ms   • 遺失率: 2.5~12%   • 尖峰率: 8~32%'
+        formulaRangesText: '• 延遲 (p50/p95): 220~600ms / 400~900ms   • 抖動 (Jitter/MAD): 60~180ms / 45~140ms   • 遺失率: 4~16%   • 尖峰率: 12~40%'
       },
       en: {
         subtitle: 'Real-time connection latency, jitter, fail/timeout rate, and congestion-delay monitoring for office work and warehouse logistics.',
@@ -808,7 +808,7 @@
         gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
         thGrade: 'Grade', thScore: 'Score', thDesc: 'Experience & Recommendations',
         sDesc: 'Excellent: Ultra-low latency (<50ms) with zero connection drops.',
-        aDesc: 'Good: Latency 180ms~480ms, ideal for office work, online calls & warehouse barcode scanning.',
+        aDesc: 'Good: Latency 220ms~600ms, ideal for office work, online calls & warehouse barcode scanning.',
         bDesc: 'Marginal: Slight latency fluctuations; high-frequency operations may notice mild lag.',
         cDesc: 'Unstable/Poor: High latency or frequent timeouts; check network connection.',
         warmUpRuleDesc: '💡 Dynamic Warm-up Threshold: When N > 100, 60 samples are required before displaying grade; when N ≤ 100, 30 samples are required to prevent initial skewed rating.',
@@ -818,14 +818,14 @@
         formulaWeightsTitle: 'Weighted Score Formula',
         formulaWeightsText: 'Score = 35% × Latency + 25% × Jitter + 30% × Loss + 10% × Spike',
         formulaCapTitle: 'Bottleneck Cap Guard',
-        formulaCapText: 'FinalScore = min( WeightedScore, LossScore + 18, LatencyScore + 18 )',
-        formulaCapDesc: 'When connection drops severely (LossScore = 0), FinalScore is capped at 18 (Grade F) to prevent high-latency masking.',
+        formulaCapText: 'FinalScore = min( WeightedScore, LossScore + 25, LatencyScore + 25 )',
+        formulaCapDesc: 'When connection drops severely (LossScore = 0), FinalScore is capped at 25 (Grade F) to prevent high-latency masking.',
         formulaRangesTitle: 'Metric Score Range Thresholds (100 ~ 0 pts)',
-        formulaRangesText: '• Latency (p50/p95): 180~480ms / 300~750ms   • Jitter (Jitter/MAD): 40~130ms / 30~100ms   • Loss: 2.5~12%   • Spike: 8~32%'
+        formulaRangesText: '• Latency (p50/p95): 220~600ms / 400~900ms   • Jitter (Jitter/MAD): 60~180ms / 45~140ms   • Loss: 4~16%   • Spike: 12~40%'
       }
     };
 
-    const APP_VERSION = 'v1.0.6';
+    const APP_VERSION = 'v1.0.6-1';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
