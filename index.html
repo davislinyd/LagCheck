@@ -6,6 +6,7 @@
   <meta name="description" content="LagCheck network stability monitor for latency, jitter, fail/timeout rate, and congestion delay." />
   <title>LagCheck Light · Network Stability Monitor</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+WGds8gF4gVF1rQRb55JG51FYE51e7JVTGW8LpBgJQVOygN60x5T7h5vxwg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <style>
     :root {
       color-scheme: light;
@@ -564,7 +565,7 @@
               <input id="stressToggle" type="checkbox" />
             </label>
             <div class="action-grid">
-              <button id="copyReportBtn" class="btn secondary-sky" type="button" data-i18n="copyReport">複製報告</button>
+              <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出截圖</button>
               <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
             </div>
             <div id="actionToast" class="toast"></div>
@@ -674,12 +675,12 @@
         activeEndpointLabel: '當前探測端點',
         endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '壅塞模擬下載 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
         stressTitle: '壅塞延遲模擬', stressHelp: '背景下載會與延遲測量並行。',
-        copyReport: '複製報告', exportCsv: '匯出 CSV', eventLogTitle: '網路事件紀錄',
+        exportScreenshot: '匯出截圖', exportCsv: '匯出 CSV', eventLogTitle: '網路事件紀錄',
         eventLogHelp: '尖峰、逾時、離線狀態會記錄在這裡。', clear: '清除',
         live: '即時監測', paused: '已暫停', offline: '離線', stress: '壅塞測試中', idle: '閒置', underLoad: '壅塞中',
         sentShort: '次', noEvents: '暫無事件。開始測試後，尖峰與逾時會自動記錄。',
         latencyDataset: '連線延遲 ms', jitterDataset: '抖動 ms', tooltipTimeout: '逾時', axisMs: '毫秒',
-        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。',
+        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。', generatingScreenshot: '正在產生畫面截圖...', screenshotDone: '畫面截圖 PNG 已下載！',
         log_monitoringStarted: '監測已開始。',
         log_monitoringPaused: '監測已暫停。',
         log_probeError: '探測 {type}: {error} ({timeout}ms 門檻)',
@@ -740,12 +741,12 @@
         activeEndpointLabel: 'Active Endpoint',
         endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Congestion Download URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
         stressTitle: 'Congestion Simulation', stressHelp: 'Background downloads run alongside latency measurement.',
-        copyReport: 'Copy Report', exportCsv: 'Export CSV', eventLogTitle: 'Network Event Log',
+        exportScreenshot: 'Export PNG', exportCsv: 'Export CSV', eventLogTitle: 'Network Event Log',
         eventLogHelp: 'Spikes, timeouts, and offline state are recorded here.', clear: 'Clear',
         live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Under Load', idle: 'Idle', underLoad: 'Load',
         sentShort: 'sent', noEvents: 'No events yet. Spikes and timeouts will appear here after testing starts.',
         latencyDataset: 'Latency ms', jitterDataset: 'Jitter ms', tooltipTimeout: 'timeout', axisMs: 'Milliseconds',
-        copied: 'Markdown report copied.', csvDone: 'CSV export generated.',
+        copied: 'Markdown report copied.', csvDone: 'CSV export generated.', generatingScreenshot: 'Generating screenshot PNG...', screenshotDone: 'Screenshot PNG exported successfully!',
         log_monitoringStarted: 'Monitoring started.',
         log_monitoringPaused: 'Monitoring paused.',
         log_probeError: 'Probe {type}: {error} ({timeout}ms threshold)',
@@ -830,7 +831,7 @@
       clearLogBtn: $('clearLogBtn'), activeEndpointBadge: $('activeEndpointBadge'), endpointInput: $('endpointInput'),
       fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
       timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'),
-      stressToggle: $('stressToggle'), stressToggleRow: $('stressToggleRow'), copyReportBtn: $('copyReportBtn'), exportCsvBtn: $('exportCsvBtn'),
+      stressToggle: $('stressToggle'), stressToggleRow: $('stressToggleRow'), exportScreenshotBtn: $('exportScreenshotBtn'), exportCsvBtn: $('exportCsvBtn'),
       actionToast: $('actionToast'), eventLog: $('eventLog'), chartTitle: $('chartTitle'), chartHelp: $('chartHelp'),
       modeLiveBtn: $('modeLiveBtn'), modePercentileBtn: $('modePercentileBtn'),
       chartMissing: $('chartMissing'), summaryStrip: document.querySelector('.summary-strip'), latencyChart: $('latencyChart')
@@ -1817,6 +1818,34 @@
       }, 220);
     }
 
+    async function exportScreenshot() {
+      if (typeof html2canvas === 'undefined') {
+        await copyReport();
+        return;
+      }
+      try {
+        toast(t('generatingScreenshot'));
+        const target = document.querySelector('.app-shell') || document.body;
+        const canvas = await html2canvas(target, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#f7f9fc',
+          logging: false
+        });
+        const image = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = image;
+        a.download = `LagCheck_Report_${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        toast(t('screenshotDone'));
+      } catch (e) {
+        console.error('Screenshot failed, falling back to copy report:', e);
+        await copyReport();
+      }
+    }
+
     if (els.helpBtn) els.helpBtn.addEventListener('click', openModal);
     if (els.modalCloseBtn) els.modalCloseBtn.addEventListener('click', closeModal);
     if (els.helpModal) {
@@ -1837,7 +1866,7 @@
     els.pauseBtn.addEventListener('click', pause);
     els.resetBtn.addEventListener('click', reset);
     els.clearLogBtn.addEventListener('click', () => { state.eventLog = []; renderLog(); });
-    els.copyReportBtn.addEventListener('click', copyReport);
+    if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
     els.exportCsvBtn.addEventListener('click', exportCsv);
     els.stressToggle.addEventListener('change', (e) => e.target.checked ? startStress() : pauseStress());
     [els.endpointInput, els.fallbackEndpointInput, els.downloadInput, els.intervalInput, els.timeoutInput, els.failoverThresholdInput, els.percentileNInput]
