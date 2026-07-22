@@ -103,18 +103,67 @@
       flex-wrap: wrap;
     }
     .client-chip {
+      height: 22px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 2px 8px;
+      padding: 0 9px;
       border-radius: 999px;
       border: 1px solid var(--line-soft);
       background: var(--panel-soft);
       color: var(--muted);
       font-size: 10.5px;
       font-weight: 700;
+      line-height: 1;
       white-space: nowrap;
       letter-spacing: .01em;
+      box-sizing: border-box;
+    }
+    .chip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      line-height: 1;
+      transform: translateY(-0.5px);
+    }
+    .chip-label {
+      font-weight: 780;
+      color: var(--soft);
+      line-height: 1;
+    }
+    .chip-val {
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .client-chip[data-tooltip] { position: relative; cursor: help; }
+    .client-chip[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-3px);
+      padding: 5px 9px;
+      border-radius: 7px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+      z-index: 1000;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+    }
+    .client-chip[data-tooltip]:hover::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
     }
     .top-actions {
       display: flex;
@@ -538,12 +587,15 @@
         <div>
           <div class="title-row">
             <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.9</span>
+            <span class="version" id="appVersion" title="Version">v1.0.10</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合辦公室作業與倉庫物流診斷。</p>
           <div class="client-info">
-             <span id="clientOsChip" class="client-chip">🖥️ <span id="clientOs">—</span></span>
-             <span id="clientTzChip" class="client-chip">🕐 <span id="clientTz">—</span></span>
+             <span id="clientOsChip" class="client-chip"><span class="chip-icon">🖥️</span> <span id="clientOs" class="chip-val">—</span></span>
+             <span id="clientTzChip" class="client-chip"><span class="chip-icon">🕐</span> <span id="clientTz" class="chip-val">—</span></span>
+             <span id="clientIpChip" class="client-chip" data-tooltip="您的對外連線出口 IP 地址"><span class="chip-icon">🌐</span> <span class="chip-label">IP:</span> <span id="clientIp" class="chip-val">—</span></span>
+             <span id="clientNodeChip" class="client-chip" data-tooltip="CDN 邊緣伺服器節點代碼 (例: TPE = 台北)"><span class="chip-icon">📍</span> <span class="chip-label">Node:</span> <span id="clientColo" class="chip-val">—</span></span>
+             <span id="clientLocChip" class="client-chip" data-tooltip="網路連線出口國家/地區 (例: TW = 台灣)"><span class="chip-icon">🚩</span> <span class="chip-label">Loc:</span> <span id="clientLoc" class="chip-val">—</span></span>
           </div>
         </div>
       </div>
@@ -665,6 +717,7 @@
             <li><strong data-i18n="f3Title">失敗／逾時可靠度</strong>：<span data-i18n="f3Desc">結合 Wilson 信心區間，精準反映真實丟包與 Timeout。</span></li>
             <li><strong data-i18n="f4Title">模擬下載速度</strong>：<span data-i18n="f4Desc">並行大流量背景下載，評估網路在負載下的 Bufferbloat 衝擊。</span></li>
             <li><strong data-i18n="f5Title">分頁省電保護</strong>：<span data-i18n="f5Desc">切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。</span></li>
+            <li><strong data-i18n="f6Title">網路出口資訊 (IP / Node / Loc)</strong>：<span data-i18n="f6Desc">自動解析探測連線之對外 IP、Cloudflare 資料中心代碼 (colo，例 TPE 台北) 與地理位置 (loc)，可即時確認連線是否在地處理、有無跨國繞路。</span></li>
           </ul>
           <div style="margin-top:10px; padding:8px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#1e40af; font-size:12px; font-weight:600;" data-i18n="settingsBoundaryDesc">💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。</div>
         </div>
@@ -783,6 +836,10 @@
         f3Title: '失敗／逾時可靠度', f3Desc: '結合 Wilson 信心區間，精準反映真實丟包與 Timeout。',
         f4Title: '模擬下載速度', f4Desc: '並行大流量背景下載，評估網路在頻寬被吃滿時的下載速度與延遲衝擊（建議情境：視訊會議/上傳大檔卡頓排障、倉庫 PDA 掃碼連線抗壓測試、路由器 QoS 流量管理評估）。',
         f5Title: '分頁省電保護', f5Desc: '切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。',
+        f6Title: '網路出口資訊 (IP / Node / Loc)', f6Desc: '自動解析探測連線之對外 IP、Cloudflare 資料中心代碼 (colo，例 TPE 台北) 與地理位置 (loc)，可即時確認連線是否在地處理、有無跨國繞路。',
+        ipTooltip: '您的對外連線出口 IP 地址',
+        coloTooltip: 'CDN 邊緣伺服器節點代碼 (例: TPE = 台北)',
+        locTooltip: '網路連線出口國家/地區 (例: TW = 台灣)',
         stressToggleTooltip: '模擬背景大流量下載，檢驗頻寬吃滿時 (如看影片/下載大檔) 網路與傳輸速度表現',
         gradingHead: '企業評級機制標準 (0 - 100 分)',
         gradingDesc: '評級綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)，並包含「短板瓶頸封頂機制 (Bottleneck Cap)」，防範嚴重丟包或斷線被優良延遲虛高掩蓋：',
@@ -859,6 +916,10 @@
         f3Title: 'Reliability & Loss', f3Desc: 'Applies Wilson score interval to accurately gauge timeouts and loss.',
         f4Title: 'Simulate Download Speed', f4Desc: 'Runs background download streams to evaluate download speed and latency impact under full bandwidth load.',
         f5Title: 'Background Safeguard', f5Desc: 'Pauses canvas rendering in hidden tabs to save CPU & GPU resources.',
+        f6Title: 'Network Egress Info (IP / Node / Loc)', f6Desc: 'Parses client public IP, Cloudflare edge node (colo, e.g. TPE = Taipei), and country location (loc) to verify local routing.',
+        ipTooltip: 'Your Public Egress IP Address',
+        coloTooltip: 'CDN Edge Datacenter Node (e.g., TPE = Taipei)',
+        locTooltip: 'Client Egress Country/Region (e.g., TW = Taiwan)',
         stressToggleTooltip: 'Simulates background download traffic to check speed and network stability under full bandwidth load.',
         gradingHead: 'Enterprise Grading Scale (0 - 100)',
         gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
@@ -881,7 +942,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.9';
+    const APP_VERSION = 'v1.0.10';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -953,6 +1014,7 @@
       lang: 'zh', chartMode: 'live', running: false, stress: false, loopTimer: null, inFlightProbe: null,
       stressControllers: new Set(), stressBytes: 0, stressStartTime: null, stressCompleted: false, stressAvgSpeed: null,
       startTime: null, sent: 0, failed: 0, samples: [], eventLog: [],
+      netTraceInfo: { ip: '—', colo: '—', loc: '—' },
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
       underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
       settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined'
@@ -969,6 +1031,7 @@
       requestCount: $('requestCount'), failCount: $('failCount'), maxSpike: $('maxSpike'), stressState: $('stressState'),
       bufferbloatDelta: $('bufferbloatDelta'), startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'),
       clearLogBtn: $('clearLogBtn'), logHead: $('logHead'), toggleLogCollapseBtn: $('toggleLogCollapseBtn'), activeEndpointBadge: $('activeEndpointBadge'),
+      clientIpChip: $('clientIpChip'), clientNodeChip: $('clientNodeChip'), clientLocChip: $('clientLocChip'),
       fieldInterval: $('fieldInterval'), fieldTimeout: $('fieldTimeout'), fieldFailover: $('fieldFailover'), fieldPercentileN: $('fieldPercentileN'), fieldAutoStop: $('fieldAutoStop'),
       endpointInput: $('endpointInput'), fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
       timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'), autoStopSelect: $('autoStopSelect'),
@@ -1151,6 +1214,9 @@
       if (els.fieldFailover) els.fieldFailover.setAttribute('data-tooltip', t('failoverTooltip'));
       if (els.fieldPercentileN) els.fieldPercentileN.setAttribute('data-tooltip', t('percentileNTooltip'));
       if (els.fieldAutoStop) els.fieldAutoStop.setAttribute('data-tooltip', t('autoStopTooltip'));
+      if (els.clientIpChip) els.clientIpChip.setAttribute('data-tooltip', t('ipTooltip'));
+      if (els.clientNodeChip) els.clientNodeChip.setAttribute('data-tooltip', t('coloTooltip'));
+      if (els.clientLocChip) els.clientLocChip.setAttribute('data-tooltip', t('locTooltip'));
       if (els.toggleLogCollapseBtn) {
         const logCard = els.eventLog ? els.eventLog.closest('.log-card') : null;
         const isCollapsed = logCard && logCard.classList.contains('collapsed');
@@ -1161,6 +1227,36 @@
       updateUI({ skipChart: true });
       persist();
     }
+
+    function updateNetInfoChips() {
+      const ipEl = $('clientIp');
+      const coloEl = $('clientColo');
+      const locEl = $('clientLoc');
+      if (ipEl) ipEl.textContent = state.netTraceInfo.ip || '—';
+      if (coloEl) coloEl.textContent = state.netTraceInfo.colo || '—';
+      if (locEl) locEl.textContent = state.netTraceInfo.loc || '—';
+    }
+
+    async function fetchTraceInfo() {
+      try {
+        const res = await fetch('https://www.cloudflare.com/cdn-cgi/trace', { cache: 'no-store', credentials: 'omit' });
+        const text = await res.text();
+        if (!text) return;
+        for (const line of text.split('\n')) {
+          const [k, v] = line.split('=');
+          if (k && v) {
+            const key = k.trim();
+            const val = v.trim();
+            if (key === 'ip') state.netTraceInfo.ip = val;
+            if (key === 'colo') state.netTraceInfo.colo = val;
+            if (key === 'loc') state.netTraceInfo.loc = val;
+          }
+        }
+        updateNetInfoChips();
+      } catch (e) { /* ignore fallback */ }
+    }
+
+    fetchTraceInfo();
 
     function clampNumber(value, min, max, fallback) {
       const n = Number(value);
