@@ -68,7 +68,7 @@ python3 -m http.server 8080
 | Fallback probe endpoint | `https://checkip.amazonaws.com` |
 | Failover threshold | 5 次失敗 |
 | Stress download | `https://speed.cloudflare.com/__down?bytes=5000000` |
-| 採樣間隔 | 1000 ms（200–2000） |
+| 採樣間隔 | 500 ms（200–2000） |
 | 逾時 | 2000 ms |
 | 暖機樣本 | 3 |
 | 圖表／統計時間窗 | 60 s |
