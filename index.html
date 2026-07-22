@@ -712,7 +712,7 @@
         live: '即時監測', paused: '已暫停', offline: '離線', stress: '壅塞測試中', idle: '閒置', underLoad: '壅塞中',
         sentShort: '次', noEvents: '暫無事件。開始測試後，尖峰與逾時會自動記錄。',
         latencyDataset: '連線延遲 ms', jitterDataset: '抖動 ms', tooltipTimeout: '逾時', axisMs: '毫秒',
-        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。', generatingScreenshot: '正在產生畫面截圖...', screenshotDone: '畫面截圖 PNG 已下載！',
+        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。', generatingScreenshot: '正在產生畫面截圖...', screenshotDone: '畫面截圖已下載並複製到剪貼本！',
         log_monitoringStarted: '監測已開始。',
         log_monitoringPaused: '監測已暫停。',
         log_probeError: '探測 {type}: {error} ({timeout}ms 門檻)',
@@ -778,7 +778,7 @@
         live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Under Load', idle: 'Idle', underLoad: 'Load',
         sentShort: 'sent', noEvents: 'No events yet. Spikes and timeouts will appear here after testing starts.',
         latencyDataset: 'Latency ms', jitterDataset: 'Jitter ms', tooltipTimeout: 'timeout', axisMs: 'Milliseconds',
-        copied: 'Markdown report copied.', csvDone: 'CSV export generated.', generatingScreenshot: 'Generating screenshot PNG...', screenshotDone: 'Screenshot PNG exported successfully!',
+        copied: 'Markdown report copied.', csvDone: 'CSV export generated.', generatingScreenshot: 'Generating screenshot PNG...', screenshotDone: 'Screenshot downloaded & copied to clipboard!',
         log_monitoringStarted: 'Monitoring started.',
         log_monitoringPaused: 'Monitoring paused.',
         log_probeError: 'Probe {type}: {error} ({timeout}ms threshold)',
@@ -1937,7 +1937,26 @@
         document.body.appendChild(a);
         a.click();
         a.remove();
-        toast(t('screenshotDone'));
+
+        // 嘗試複製圖片到剪貼本 (Async Clipboard API)
+        let copiedToClipboard = false;
+        if (navigator.clipboard && typeof ClipboardItem !== 'undefined' && canvas.toBlob) {
+          try {
+            await new Promise((resolve) => {
+              canvas.toBlob(async (blob) => {
+                if (blob) {
+                  try {
+                    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                    copiedToClipboard = true;
+                  } catch (e) { /* ignore clipboard permission block */ }
+                }
+                resolve();
+              }, 'image/png');
+            });
+          } catch {}
+        }
+
+        toast(copiedToClipboard ? t('screenshotDone') : t('screenshotDone'));
       } catch (e) {
         console.error('Screenshot failed:', e);
         toast(`截圖失敗: ${e?.message || '未知錯誤'}`);
