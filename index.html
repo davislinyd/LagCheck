@@ -393,7 +393,7 @@
       body { overflow: hidden; }
       .app { padding: 12px; }
       .topbar { grid-template-columns: 1fr; min-height: auto; }
-      .top-actions { grid-template-columns: 88px 154px 86px; justify-content: start; }
+      .top-actions { grid-template-columns: repeat(4, auto); justify-content: start; gap: 8px; }
       .summary-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .workspace-grid { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 238px; }
       .side-panel { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
@@ -401,32 +401,33 @@
       .settings-card .panel-head { display: none; }
     }
     @media (max-width: 760px) {
-      .app { padding: 8px; gap: 8px; }
+      body { overflow-y: auto !important; height: auto !important; }
+      .app { padding: 8px; gap: 8px; height: auto !important; min-height: 100dvh; overflow: visible; }
       .topbar { padding: 10px; border-radius: 14px; }
       .brand-row { align-items: center; }
       .logo { width: 34px; height: 34px; border-radius: 9px; }
-      h1 { font-size: 22px; }
-      .subtitle { font-size: 12px; }
-      .top-actions { grid-template-columns: 72px 1fr 74px; width: 100%; }
-      .lang-toggle, .status-pill, .grade-box { height: 38px; border-radius: 10px; }
-      .grade-value { font-size: 19px; }
-      .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 142px; }
-      .metric-card { min-height: 71px; grid-template-rows: 18px 1fr; padding: 8px 10px; }
+      h1 { font-size: 20px; }
+      .subtitle { font-size: 11px; }
+      .top-actions { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+      .lang-toggle, .status-pill, .grade-box, .help-toggle { height: 34px; border-radius: 8px; font-size: 12px; }
+      .grade-value { font-size: 17px; }
+      .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: auto; }
+      .metric-card { min-height: 64px; grid-template-rows: 18px 1fr; padding: 6px 8px; }
       .metric-card:nth-child(2) { border-right: 0; }
       .metric-card:nth-child(1), .metric-card:nth-child(2) { border-bottom: 1px solid var(--line-soft); }
       .metric-head { grid-template-columns: 1fr auto; }
       .metric-title { font-size: 11px; }
       .metric-tag { height: 18px; min-width: 36px; font-size: 9px; }
-      .metric-number { font-size: 29px; }
+      .metric-number { font-size: 24px; }
       .metric-foot { display: none; }
-      .workspace-grid { grid-template-rows: minmax(0, 1fr) minmax(240px, 36vh); }
-      .settings-card { max-height: 36vh; overflow-y: auto; }
-      .chart-panel { padding: 10px; }
+      .workspace-grid { display: flex; flex-direction: column; gap: 10px; height: auto !important; }
+      .chart-panel { height: 320px !important; min-height: 320px; flex: 0 0 320px; padding: 10px; }
       .panel-head { grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
       .panel-desc { display: none; }
       .control-row { grid-template-columns: repeat(3, 1fr); }
-      .side-panel { grid-template-columns: 1fr 1fr; }
-      .settings-card { padding: 10px; overflow: auto; }
+      .side-panel { display: flex; flex-direction: column; gap: 10px; height: auto !important; grid-template-columns: none; grid-template-rows: none; }
+      .settings-card { padding: 10px; overflow: visible; height: auto !important; max-height: none !important; border-right: 0; border-bottom: 1px solid var(--line-soft); }
+      .log-card { height: auto !important; max-height: none !important; }
       .form-grid { gap: 6px; }
       .field-label { display: block; font-size: 10px; height: auto; line-height: 1.2; }
       .input, .number-wrap { height: 30px; }
@@ -436,24 +437,18 @@
       .toggle-help { display: none; }
       .toast { min-height: 24px; font-size: 10px; }
       .log-head { height: 40px; }
+      .event-log { max-height: 200px; padding: 8px; }
     }
     @media (max-width: 520px) {
-      .app { grid-template-rows: auto auto minmax(0, 1fr); }
       .subtitle { display: none; }
       .client-info { display: none; }
-      .topbar { grid-template-columns: 1fr; gap: 8px; }
-      .top-actions { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; scrollbar-width: none; }
-      .top-actions::-webkit-scrollbar { display: none; }
-      .workspace-grid { grid-template-rows: minmax(0, 1fr) minmax(280px, 38vh); }
-      .side-panel { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
-      .settings-card { border-right: 0; border-bottom: 1px solid var(--line-soft); padding: 8px; }
+      .topbar { gap: 8px; }
+      .top-actions > * { flex: 1 1 calc(50% - 6px); justify-content: center; }
       .action-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-      .btn { height: 30px; }
-      .event-log { padding: 8px; }
+      .btn { height: 32px; }
     }
     @media (max-height: 480px) and (orientation: landscape) {
       .summary-strip { display: none; }
-      .workspace-grid { grid-template-rows: minmax(0, 1fr); }
       .side-panel { display: none; }
     }
     /* Floating Modal Window Styles */
