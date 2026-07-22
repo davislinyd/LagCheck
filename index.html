@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="LagCheck network stability monitor for latency, jitter, fail/timeout rate, and congestion delay." />
+  <title>LagCheck Light · Network Stability Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f9fc;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --line: #d8e0ea;
+      --line-soft: #e8edf3;
+      --text: #172033;
+      --muted: #66758a;
+      --soft: #334155;
+      --blue: #2563eb;
+      --green: #059669;
+      --amber: #d97706;
+      --rose: #dc2626;
+      --shadow: 0 10px 24px rgba(15, 23, 42, .06);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: #f7f9fc;
+      overflow: hidden;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .app {
+      width: min(1280px, 100%);
+      height: 100dvh;
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 10px;
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      min-height: 74px;
+    }
+    .brand-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .logo {
+      width: 38px; height: 38px; flex: 0 0 auto;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .04em;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+    .title-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    h1 { margin: 0; font-size: clamp(22px, 2.2vw, 30px); line-height: 1; letter-spacing: -.04em; font-weight: 820; }
+    .version {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 780;
+      letter-spacing: .02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line-soft);
+      background: var(--panel-soft);
+    }
+    .subtitle {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 780px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+    .help-toggle, .lang-toggle, .status-pill, .grade-box {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+      box-sizing: border-box;
+    }
+    .help-toggle, .lang-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 0 12px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .help-toggle:hover, .lang-toggle:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 12px;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 99px; background: var(--muted); }
+    .status-dot.live { background: var(--green); animation: pulse 1.8s ease-in-out infinite; }
+    .status-dot.stress { background: var(--amber); animation: pulse 1.8s ease-in-out infinite; }
+    .status-dot.offline { background: var(--rose); animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.18); opacity: .72; } }
+    .grade-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 12px;
+      position: relative;
+      cursor: help;
+    }
+    .grade-box::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.45;
+      white-space: normal;
+      width: max-content;
+      max-width: 250px;
+      border-radius: 8px;
+      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      transform: translateY(-4px);
+      z-index: 1000;
+      text-align: left;
+    }
+    .grade-box:hover::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .grade-caption { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .grade-value { font-size: 18px; line-height: 1; font-weight: 850; }
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 104px;
+    }
+    .metric-card {
+      min-height: 104px;
+      display: grid;
+      grid-template-rows: 28px 1fr 18px;
+      padding: 12px 14px;
+      border: 0;
+      border-right: 1px solid var(--line-soft);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: hidden;
+    }
+    .metric-card:last-child { border-right: 0; }
+    .metric-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+    .metric-title { margin: 0; color: var(--muted); font-size: 12px; line-height: 16px; font-weight: 780; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric-tag { min-width: 42px; height: 20px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid #dbeafe; color: #1d4ed8; background: #eff6ff; font-size: 10px; font-weight: 780; white-space: nowrap; }
+    .metric-value { display: flex; align-items: end; gap: 6px; min-width: 0; }
+    .metric-number { font-size: clamp(30px, 4vw, 44px); line-height: .92; font-weight: 860; letter-spacing: -.055em; font-variant-numeric: tabular-nums; color: #111827; }
+    .unit { margin-bottom: 4px; color: var(--muted); font-size: 12px; font-weight: 760; }
+    .metric-foot { color: var(--muted); font-size: 11px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr) 356px; gap: 10px; min-height: 0; }
+    .chart-panel, .side-panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      min-width: 0;
+      min-height: 0;
+    }
+    .chart-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); padding: 12px; }
+    .panel-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .panel-title { margin: 0; font-size: 16px; line-height: 20px; font-weight: 820; letter-spacing: -.02em; }
+    .panel-desc { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .control-row { display: grid; grid-template-columns: repeat(3, 76px); gap: 6px; }
+    .btn {
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #ffffff;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+      transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    .btn.primary { color: #fff; border-color: var(--blue); background: var(--blue); box-shadow: 0 6px 14px rgba(37, 99, 235, .16); }
+    .btn.danger { color: var(--rose); border-color: #fecaca; background: #fff7f7; }
+    .chart-box { min-height: 0; padding: 8px; border: 1px solid var(--line-soft); border-radius: 12px; background: #ffffff; }
+    .panel-title-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .chart-mode-segmented {
+      display: inline-flex;
+      padding: 3px;
+      gap: 2px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f1f5f9;
+    }
+    .mode-tab {
+      border: 0;
+      border-radius: 7px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 780;
+      color: var(--muted);
+      background: transparent;
+      transition: all .15s ease;
+      cursor: pointer;
+    }
+    .mode-tab:hover { color: var(--text); }
+    .mode-tab.active {
+      color: var(--blue);
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, .08);
+    }
+    .side-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
+    .settings-card, .log-card { min-width: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+    .settings-card { padding: 12px; border-bottom: 1px solid var(--line-soft); }
+    .settings-card .panel-head { margin-bottom: 8px !important; }
+    .settings-card .panel-desc { display: none; }
+    .form-grid { display: grid; gap: 8px; }
+    .field { display: grid; gap: 5px; }
+    .field-label { height: 16px; color: var(--soft); font-size: 11px; font-weight: 780; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .input, .number-wrap { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: #f8fafc; outline: none; }
+    .input { padding: 0 10px; font-size: 11px; }
+    .input:focus, .number-wrap:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, .10); }
+    .number-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .number-wrap { display: grid; grid-template-columns: 1fr 36px; overflow: hidden; }
+    .number-wrap input { min-width: 0; border: 0; outline: 0; padding: 0 8px; color: var(--text); background: transparent; font-size: 12px; }
+    .number-wrap span { display: grid; place-items: center; color: var(--muted); font-size: 11px; border-left: 1px solid var(--line); background: #f1f5f9; }
+    .toggle-row { min-height: 46px; display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 10px; background: #f8fafc; }
+    .toggle-title { display: block; color: var(--soft); font-size: 12px; line-height: 16px; font-weight: 800; }
+    .toggle-help { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .toggle-row input { width: 18px; height: 18px; accent-color: var(--blue); justify-self: end; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn.secondary-sky { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+    .btn.secondary-green { color: #047857; border-color: #bbf7d0; background: #ecfdf5; }
+    .toast { min-height: 28px; padding: 6px 8px; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--soft); background: #f8fafc; font-size: 11px; line-height: 15px; }
+    .toast:empty { display: none; }
+    .log-card { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+    .log-head { height: 48px; display: grid; grid-template-columns: minmax(0, 1fr) 52px; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line-soft); }
+    .log-title { margin: 0; font-size: 14px; line-height: 17px; font-weight: 820; }
+    .log-subtitle { margin: 1px 0 0; color: var(--muted); font-size: 10px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clear-btn { height: 28px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: #fff; font-size: 10px; font-weight: 780; }
+    .event-log { min-height: 0; overflow: auto; padding: 10px 12px; display: grid; align-content: start; gap: 7px; }
+    .event-log::-webkit-scrollbar { width: 8px; }
+    .event-log::-webkit-scrollbar-thumb { border-radius: 99px; background: #cbd5e1; }
+    .event-item { padding: 8px 9px; border: 1px solid var(--line-soft); border-radius: 10px; background: #f8fafc; }
+    .event-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .event-msg { margin: 4px 0 0; color: var(--soft); font-size: 11px; line-height: 1.35; }
+    .empty-log { padding: 12px; border: 1px dashed #cbd5e1; border-radius: 10px; color: var(--muted); font-size: 11px; line-height: 1.45; background: #f8fafc; }
+    .cdn-banner {
+      display: none;
+      margin: 0 0 10px;
+      padding: 10px 12px;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      background: #fff7f7;
+      color: #991b1b;
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+    .cdn-banner[data-visible="true"] { display: block; }
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .status-dot.live, .status-dot.stress, .status-dot.offline { animation: none; }
+      .btn { transition: none; }
+    }
+    @media (max-width: 1120px) {
+      body { overflow: hidden; }
+      .app { padding: 12px; }
+      .topbar { grid-template-columns: 1fr; min-height: auto; }
+      .top-actions { grid-template-columns: 88px 154px 86px; justify-content: start; }
+      .summary-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .workspace-grid { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 238px; }
+      .side-panel { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+      .settings-card { border-bottom: 0; border-right: 1px solid var(--line-soft); }
+      .settings-card .panel-head { display: none; }
+    }
+    @media (max-width: 760px) {
+      .app { padding: 8px; gap: 8px; }
+      .topbar { padding: 10px; border-radius: 14px; }
+      .brand-row { align-items: center; }
+      .logo { width: 34px; height: 34px; border-radius: 9px; }
+      h1 { font-size: 22px; }
+      .subtitle { font-size: 12px; }
+      .top-actions { grid-template-columns: 72px 1fr 74px; width: 100%; }
+      .lang-toggle, .status-pill, .grade-box { height: 38px; border-radius: 10px; }
+      .grade-value { font-size: 19px; }
+      .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 142px; }
+      .metric-card { min-height: 71px; grid-template-rows: 18px 1fr; padding: 8px 10px; }
+      .metric-card:nth-child(2) { border-right: 0; }
+      .metric-card:nth-child(1), .metric-card:nth-child(2) { border-bottom: 1px solid var(--line-soft); }
+      .metric-head { grid-template-columns: 1fr auto; }
+      .metric-title { font-size: 11px; }
+      .metric-tag { height: 18px; min-width: 36px; font-size: 9px; }
+      .metric-number { font-size: 29px; }
+      .metric-foot { display: none; }
+      .workspace-grid { grid-template-rows: minmax(0, 1fr) minmax(260px, 34vh); }
+      .chart-panel { padding: 10px; }
+      .panel-head { grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
+      .panel-desc { display: none; }
+      .control-row { grid-template-columns: repeat(3, 1fr); }
+      .side-panel { grid-template-columns: 1fr 1fr; }
+      .settings-card { padding: 10px; overflow: auto; }
+      .form-grid { gap: 6px; }
+      .field-label { display: block; font-size: 10px; height: auto; line-height: 1.2; }
+      .input, .number-wrap { height: 30px; }
+      .number-grid { gap: 6px; }
+      .toggle-row { display: grid; min-height: 38px; padding: 6px 8px; }
+      .toggle-title { font-size: 11px; }
+      .toggle-help { display: none; }
+      .toast { min-height: 24px; font-size: 10px; }
+      .log-head { height: 40px; }
+    }
+    @media (max-width: 520px) {
+      .app { grid-template-rows: auto auto minmax(0, 1fr); }
+      .subtitle { display: none; }
+      .topbar { grid-template-columns: 1fr; gap: 8px; }
+      .top-actions { display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto; }
+      .workspace-grid { grid-template-rows: minmax(0, 1fr) minmax(280px, 38vh); }
+      .side-panel { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+      .settings-card { border-right: 0; border-bottom: 1px solid var(--line-soft); padding: 8px; }
+      .action-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .btn { height: 30px; }
+      .event-log { padding: 8px; }
+    }
+    /* Floating Modal Window Styles */
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 99999; padding: 20px;
+      opacity: 0; transition: opacity 0.22s ease;
+    }
+    .modal-backdrop.open {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-window {
+      background: #ffffff; border-radius: 16px;
+      max-width: 660px; width: 100%; max-height: 85vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--line-soft); overflow: hidden;
+      transform: scale(0.94); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.open .modal-window {
+      transform: scale(1);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--line-soft); background: #f8fafc;
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0; }
+    .modal-close {
+      background: transparent; border: none; font-size: 1.25rem; color: #64748b;
+      cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.15s; line-height: 1;
+    }
+    .modal-close:hover { background: #e2e8f0; color: #0f172a; }
+    .modal-body {
+      padding: 20px; overflow-y: auto; color: #334155; font-size: 0.9rem; line-height: 1.6;
+    }
+    .guide-section { margin-bottom: 22px; }
+    .guide-section h3 { font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
+    .guide-list { margin: 0; padding-left: 18px; }
+    .guide-list li { margin-bottom: 6px; }
+    .grade-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .grade-table th, .grade-table td { padding: 8px 10px; border: 1px solid #e2e8f0; text-align: left; }
+    .grade-table th { background: #f1f5f9; color: #1e293b; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand-row">
+        <div class="logo">LC</div>
+        <div>
+          <div class="title-row">
+            <h1>LagCheck</h1>
+            <span class="version" id="appVersion" title="Version">v0.1.2</span>
+          </div>
+          <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合遊戲、會議、遠端桌面與直播排障。</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="helpBtn" class="help-toggle" type="button" aria-label="Help and Grading Guide" title="Help Guide">❓ <span data-i18n="helpBtnText">說明</span></button>
+        <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+        <div id="statusPill" class="status-pill" role="status" aria-live="polite" aria-atomic="true"><span id="statusDot" class="status-dot" aria-hidden="true"></span><span id="statusText">已暫停</span></div>
+        <div id="gradeBadge" class="grade-box" role="status" aria-live="polite" aria-atomic="true"><div class="grade-caption" data-i18n="gradeLabel">評級</div><div id="gradeText" class="grade-value">—</div></div>
+      </div>
+    </header>
+
+    <div id="chartMissing" class="cdn-banner" role="alert" data-i18n="chartMissing">圖表函式庫載入失敗，曲線無法顯示。請檢查網路或 CDN 連線後重新整理。</div>
+
+    <section class="summary-strip" aria-label="Metrics" data-i18n-aria="metricsAria">
+      <article class="metric-card">
+        <div class="metric-head"><p class="metric-title" data-i18n="currentLatency">目前連線延遲</p><span id="latencyTrend" class="metric-tag">—</span></div>
+        <div class="metric-value"><span id="currentLatency" class="metric-number">—</span><span class="unit">ms</span></div>
+        <div class="metric-foot"><span data-i18n="avgShort">平均</span> <span id="avgLatency">—</span> · <span data-i18n="minShort">最低</span> <span id="minLatency">—</span> · <span data-i18n="maxShort">最高</span> <span id="maxLatency">—</span></div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head"><p class="metric-title" data-i18n="jitterTitle">抖動</p><span class="metric-tag" data-i18n="windowTag">20 筆</span></div>
+        <div class="metric-value"><span id="jitter" class="metric-number">—</span><span class="unit">ms</span></div>
+        <div class="metric-foot" data-i18n="jitterHelp">相鄰兩次延遲差值的滾動平均。</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head"><p class="metric-title" data-i18n="lossTitle">失敗／逾時率</p><span id="requestCount" class="metric-tag">0 次</span></div>
+        <div class="metric-value"><span id="lossRate" class="metric-number">0.0</span><span class="unit">%</span></div>
+        <div class="metric-foot"><span id="failCount">0</span> <span data-i18n="failedSuffix">次失敗或逾時</span></div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head"><p class="metric-title" data-i18n="maxSpikeTitle">最大尖峰</p><span id="stressState" class="metric-tag">閒置</span></div>
+        <div class="metric-value"><span id="maxSpike" class="metric-number">—</span><span class="unit">ms</span></div>
+        <div class="metric-foot"><span data-i18n="bufferDeltaLabel">壅塞延遲差</span> <span id="bufferbloatDelta">—</span></div>
+      </article>
+    </section>
+
+    <main class="workspace-grid">
+      <section class="chart-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title-wrap">
+              <h2 id="chartTitle" class="panel-title" data-i18n="chartTitle">即時曲線</h2>
+              <div class="chart-mode-segmented" role="tablist" aria-label="Chart mode">
+                <button id="modeLiveBtn" type="button" class="mode-tab active" data-mode="live" data-i18n="modeLive" role="tab" aria-selected="true">即時曲線</button>
+                <button id="modePercentileBtn" type="button" class="mode-tab" data-mode="percentile" data-i18n="modePercentile" role="tab" aria-selected="false">即時百分位</button>
+              </div>
+            </div>
+            <p id="chartHelp" class="panel-desc" data-i18n="chartHelp">依時間窗顯示最近約 60 秒的連線延遲與抖動；紅色為失敗／逾時，橘色為尖峰。</p>
+          </div>
+          <div class="control-row">
+            <button id="startBtn" class="btn primary" type="button" data-i18n="start" aria-pressed="false">開始</button>
+            <button id="pauseBtn" class="btn" type="button" data-i18n="pause" aria-pressed="true">暫停</button>
+            <button id="resetBtn" class="btn danger" type="button" data-i18n="reset">重設</button>
+          </div>
+        </div>
+        <div class="chart-box"><canvas id="latencyChart" role="img" aria-label="Latency chart"></canvas></div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="settings-card">
+          <div class="panel-head" style="margin-bottom:12px; grid-template-columns:1fr;">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <h2 class="panel-title" data-i18n="settingsTitle">測試設定</h2>
+                <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff;" title="Active Probe Target">Active: —</span>
+              </div>
+              <p class="panel-desc" data-i18n="settingsHelp">調整端點、採樣間隔與逾時門檻，下一次採樣即生效。</p>
+            </div>
+          </div>
+          <div class="form-grid">
+            <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
+            <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
+            <label class="field"><span class="field-label" data-i18n="downloadLabel">壅塞模擬下載 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
+            <div class="number-grid" style="grid-template-columns: repeat(2, 1fr);">
+              <label class="field"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
+              <label class="field"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="500" max="10000" step="100" /><span>ms</span></span></label>
+              <label class="field"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="1" max="20" step="1" /><span data-i18n="timesUnit">次</span></span></label>
+              <label class="field"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="10" max="300" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
+            </div>
+            <label class="toggle-row" for="stressToggle">
+              <span><span class="toggle-title" data-i18n="stressTitle">壅塞延遲模擬</span><span class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
+              <input id="stressToggle" type="checkbox" />
+            </label>
+            <div class="action-grid">
+              <button id="copyReportBtn" class="btn secondary-sky" type="button" data-i18n="copyReport">複製報告</button>
+              <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
+            </div>
+            <div id="actionToast" class="toast"></div>
+          </div>
+        </section>
+
+        <section class="log-card">
+          <div class="log-head">
+            <div><h2 class="log-title" data-i18n="eventLogTitle">網路事件紀錄</h2><p class="log-subtitle" data-i18n="eventLogHelp">尖峰、逾時、離線狀態會記錄在這裡。</p></div>
+            <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
+          </div>
+          <div id="eventLog" class="event-log"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div id="helpModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 id="modalTitle" class="modal-title" data-i18n="helpModalTitle">💡 功能特色與評級機制說明</h2>
+        <button id="modalCloseBtn" class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="guide-section">
+          <h3><span style="color:var(--blue);">🚀</span> <span data-i18n="featuresHead">核心功能特色</span></h3>
+          <ul class="guide-list">
+            <li><strong data-i18n="f1Title">即時連線探測</strong>：<span data-i18n="f1Desc">每秒探測一次，支援 P50/P95 百分位圖表與雙端點 Failover 自動切換。</span></li>
+            <li><strong data-i18n="f2Title">抖動與尖峰記錄</strong>：<span data-i18n="f2Desc">滾動計算網路 Jitter 與 MAD，自動擷取異常脈衝尖峰。</span></li>
+            <li><strong data-i18n="f3Title">失敗／逾時可靠度</strong>：<span data-i18n="f3Desc">結合 Wilson 信心區間，精準反映真實丟包與 Timeout。</span></li>
+            <li><strong data-i18n="f4Title">壅塞模擬測試</strong>：<span data-i18n="f4Desc">並行大流量背景下載，評估網路在負載下的 Bufferbloat 衝擊。</span></li>
+            <li><strong data-i18n="f5Title">分頁省電保護</strong>：<span data-i18n="f5Desc">切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。</span></li>
+          </ul>
+        </div>
+        <div class="guide-section">
+          <h3><span style="color:var(--amber);">📊</span> <span data-i18n="gradingHead">企業評級機制標準 (0 - 100 分)</span></h3>
+          <p style="margin:0 0 10px 0; color:#64748b;" data-i18n="gradingDesc">評級綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)。門檻放寬以貼合辦公室與倉庫 PDA 條碼重傳 API 之需求：</p>
+          <table class="grade-table">
+            <thead>
+              <tr>
+                <th data-i18n="thGrade">評級</th>
+                <th data-i18n="thScore">分數</th>
+                <th data-i18n="thDesc">實用品質體驗與建議</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong style="color:#059669;">S+ / S</strong></td>
+                <td>90 - 100</td>
+                <td data-i18n="sDesc">極佳：超低延遲 (<50ms)，無任何連線中斷。</td>
+              </tr>
+              <tr>
+                <td><strong style="color:#2563eb;">A+ / A</strong></td>
+                <td>75 - 89</td>
+                <td data-i18n="aDesc">良好：延遲 180ms~450ms 內，適合辦公室日常、線上會議與倉庫 PDA 掃碼列印。</td>
+              </tr>
+              <tr>
+                <td><strong style="color:#d97706;">B</strong></td>
+                <td>60 - 74</td>
+                <td data-i18n="bDesc">勉強：偶有延遲波動，高頻即時操作可能微有感知。</td>
+              </tr>
+              <tr>
+                <td><strong style="color:#dc2626;">C / F</strong></td>
+                <td>&lt; 60</td>
+                <td data-i18n="cDesc">不穩定／差：高延遲或頻繁 Timeout，請檢查網路連線。</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin:12px 0 0 0; font-size:0.825rem; color:#64748b;" data-i18n="warmUpRuleDesc">
+            💡 <strong>動態解鎖門檻</strong>：當樣本數 (N) &gt; 100 時，需累積採樣達 60 次才解鎖顯示評級；當 N &le; 100 時則需達 30 次，防範初期數據過少造成評級失真。
+          </p>
+        </div>
+        <div class="guide-section" style="margin-bottom: 0;">
+          <h3><span style="color:var(--blue);">📐</span> <span data-i18n="formulaHead">具體評級計算公式 (Exact Calculation Formula)</span></h3>
+          <ul class="guide-list" style="font-size:0.85rem;">
+            <li><strong data-i18n="formulaWeightsTitle">加權總分算式</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0;" data-i18n="formulaWeightsText">Score = 35%×延遲 + 25%×抖動 + 30%×遺失率 + 10%×尖峰率</code>
+            </li>
+            <li><strong data-i18n="formulaCapTitle">短板瓶頸封頂防護 (Bottleneck Cap)</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0;" data-i18n="formulaCapText">FinalScore = min( 加權總分, 遺失率分數 + 18, 延遲分數 + 18 )</code>
+              <span style="font-size:0.8rem; color:#64748b;" data-i18n="formulaCapDesc">當連線嚴重斷線時（遺失率 0分），總分將被硬性鎖定在最高 18 分 (F 級)，防範木桶缺陷。</span>
+            </li>
+            <li><strong data-i18n="formulaRangesTitle">各指標滿分/零分區間門檻</strong>：<br>
+              <span style="font-size:0.8rem; color:#64748b;" data-i18n="formulaRangesText">• 延遲 (p50/p95): 180~480ms / 300~750ms &nbsp; • 抖動: 40~130ms &nbsp; • 遺失率: 2.5~12% &nbsp; • 尖峰率: 8~32%</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const I18N = {
+      zh: {
+        subtitle: '即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合遊戲、會議、遠端桌面與直播排障。',
+        gradeLabel: '評級', currentLatency: '目前連線延遲', avgShort: '平均', minShort: '最低', maxShort: '最高',
+        jitterTitle: '抖動', windowTag: '20 筆', jitterHelp: '相鄰兩次延遲差值的滾動平均。',
+        lossTitle: '失敗／逾時率', failedSuffix: '次失敗或逾時', maxSpikeTitle: '最大尖峰', bufferDeltaLabel: '壅塞延遲差',
+        chartTitle: '即時曲線', chartHelp: '依過去 N 筆採樣顯示連線延遲與抖動；紅色為失敗／逾時，橘色為尖峰。',
+        modeLive: '即時曲線', modePercentile: '即時百分位',
+        chartTitlePercentile: '即時百分位分佈',
+        chartHelpPercentile: '依過去 N 筆採樣由小到大排序，顯示連線延遲分佈與 P50、P75、P90、P95、P99 標記。',
+        percentileNLabel: '樣本數 (N)', sampleUnit: '筆', percentileDataset: '連線延遲 ms',
+        p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
+        start: '開始', pause: '暫停', reset: '重設', settingsTitle: '測試設定',
+        settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
+        activeEndpointLabel: '當前探測端點',
+        endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '壅塞模擬下載 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
+        stressTitle: '壅塞延遲模擬', stressHelp: '背景下載會與延遲測量並行。',
+        copyReport: '複製報告', exportCsv: '匯出 CSV', eventLogTitle: '網路事件紀錄',
+        eventLogHelp: '尖峰、逾時、離線狀態會記錄在這裡。', clear: '清除',
+        live: '即時監測', paused: '已暫停', offline: '離線', stress: '壅塞測試中', idle: '閒置', underLoad: '壅塞中',
+        sentShort: '次', noEvents: '暫無事件。開始測試後，尖峰與逾時會自動記錄。',
+        latencyDataset: '連線延遲 ms', jitterDataset: '抖動 ms', tooltipTimeout: '逾時', axisMs: '毫秒',
+        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。',
+        log_monitoringStarted: '監測已開始。',
+        log_monitoringPaused: '監測已暫停。',
+        log_probeError: '探測 {type}: {error} ({timeout}ms 門檻)',
+        log_failoverSwitched: '[備援機制] 連續失敗達門檻，自動切換探測端點至 {host}',
+        log_spikeDetected: '偵測到延遲尖峰: {latency} ms',
+        log_stressStarted: '壅塞延遲模擬已開始，並行下載數: {count}',
+        log_stressWorkerFailed: '壅塞下載工作失敗 {id}: {error}',
+        log_browserOffline: '瀏覽器回報網路離線。',
+        log_browserOnline: '瀏覽器回報網路恢復連線。',
+        reportTitle: 'Network Stability Report', period: '期間', endpoint: '端點', grade: '評級',
+        current: '目前連線延遲', average: '平均連線延遲', minMax: '最低 / 最高連線延遲', jitter: '抖動',
+        loss: '失敗／逾時率', bufferDelta: '壅塞延遲差', recentEvents: '近期事件', noNotableEvents: '沒有記錄到顯著事件。',
+        warmUpNote: '暖機中（不計入評級）',
+        gradeExcellent: '極佳', gradeGreat: '優秀', gradeGood: '良好', gradeMarginal: '勉強', gradeUnstable: '不穩定', gradeNoData: '尚無資料',
+        chartMissing: '圖表函式庫載入失敗，曲線無法顯示。請檢查網路或 CDN 連線後重新整理。',
+        metricsAria: '網路指標摘要', langToggleAria: '切換語言', chartAria: '連線延遲與抖動曲線',
+        helpBtnText: '說明', helpBtnAria: '開啟功能與評級說明視窗',
+        helpModalTitle: '💡 功能特色與評級機制說明',
+        featuresHead: '核心功能特色',
+        f1Title: '即時連線探測', f1Desc: '每秒探測一次，支援 P50/P95 百分位圖表與雙端點 Failover 自動切換。',
+        f2Title: '抖動與尖峰記錄', f2Desc: '滾動計算網路 Jitter 與 MAD，自動擷取異常脈衝尖峰。',
+        f3Title: '失敗／逾時可靠度', f3Desc: '結合 Wilson 信心區間，精準反映真實丟包與 Timeout。',
+        f4Title: '壅塞模擬測試', f4Desc: '並行大流量背景下載，評估網路在負載下的 Bufferbloat 衝擊。',
+        f5Title: '分頁省電保護', f5Desc: '切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。',
+        gradingHead: '企業評級機制標準 (0 - 100 分)',
+        gradingDesc: '評級綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)，並包含「短板瓶頸封頂機制 (Bottleneck Cap)」，防範嚴重丟包或斷線被優良延遲虛高掩蓋：',
+        thGrade: '評級', thScore: '分數', thDesc: '實用品質體驗與建議',
+        sDesc: '極佳：超低延遲 (<50ms)，無任何連線中斷。',
+        aDesc: '良好：延遲 180ms~480ms 內，適合辦公室日常、線上會議與倉庫 PDA 掃碼列印。',
+        bDesc: '勉強：偶有延遲波動，高頻即時操作可能微有感知。',
+        cDesc: '不穩定／差：高延遲或頻繁 Timeout，請檢查網路連線。',
+        warmUpRuleDesc: '💡 動態解鎖門檻：當樣本數 (N) > 100 時，需累積採樣達 60 次才解鎖顯示評級；當 N ≤ 100 時則需達 30 次，防範初期數據過少造成評級失真。',
+        gradeTooltipNotEnough: '測試次數不足 ({progress})，累積足夠數據後將顯示評級。',
+        gradeTooltipRating: '評級：{label} ({score} 分/100 分) · 綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)，含短板封頂防護。',
+        formulaHead: '具體評級計算公式',
+        formulaWeightsTitle: '指標加權總分算式',
+        formulaWeightsText: 'Score = 35% × 延遲 + 25% × 抖動 + 30% × 遺失率 + 10% × 尖峰率',
+        formulaCapTitle: '短板瓶頸封頂防護 (Bottleneck Cap)',
+        formulaCapText: 'FinalScore = min( 加權總分, 遺失率分數 + 18, 延遲分數 + 18 )',
+        formulaCapDesc: '當連線嚴重斷線時（遺失率 0分），總分將被硬性鎖定在最高 18 分 (F 級)，防範木桶缺陷。',
+        formulaRangesTitle: '各指標滿分 / 零分區間門檻',
+        formulaRangesText: '• 延遲 (p50/p95): 180~480ms / 300~750ms   • 抖動 (Jitter/MAD): 40~130ms / 30~100ms   • 遺失率: 2.5~12%   • 尖峰率: 8~32%'
+      },
+      en: {
+        subtitle: 'Real-time connection latency, jitter, fail/timeout rate, and congestion-delay monitoring for office work and warehouse logistics.',
+        gradeLabel: 'Grade', currentLatency: 'Current Latency', avgShort: 'Avg', minShort: 'Min', maxShort: 'Max',
+        jitterTitle: 'Jitter', windowTag: '20 pts', jitterHelp: 'Rolling average of consecutive latency differences.',
+        lossTitle: 'Fail / Timeout Rate', failedSuffix: 'failed or timed out', maxSpikeTitle: 'Max Spike', bufferDeltaLabel: 'Congestion delta',
+        chartTitle: 'Live Chart', chartHelp: 'Shows latency and jitter of the last N samples; red = fail/timeout, amber = spike.',
+        modeLive: 'Live Curve', modePercentile: 'Percentiles',
+        chartTitlePercentile: 'Real-time Percentiles',
+        chartHelpPercentile: 'Shows sorted latency distribution of the last N samples with P50, P75, P90, P95, P99 marked.',
+        percentileNLabel: 'Samples (N)', sampleUnit: 'pts', percentileDataset: 'Latency ms',
+        p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
+        start: 'Start', pause: 'Pause', reset: 'Reset', settingsTitle: 'Test Settings',
+        settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
+        activeEndpointLabel: 'Active Endpoint',
+        endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Congestion Download URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
+        stressTitle: 'Congestion Simulation', stressHelp: 'Background downloads run alongside latency measurement.',
+        copyReport: 'Copy Report', exportCsv: 'Export CSV', eventLogTitle: 'Network Event Log',
+        eventLogHelp: 'Spikes, timeouts, and offline state are recorded here.', clear: 'Clear',
+        live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Under Load', idle: 'Idle', underLoad: 'Load',
+        sentShort: 'sent', noEvents: 'No events yet. Spikes and timeouts will appear here after testing starts.',
+        latencyDataset: 'Latency ms', jitterDataset: 'Jitter ms', tooltipTimeout: 'timeout', axisMs: 'Milliseconds',
+        copied: 'Markdown report copied.', csvDone: 'CSV export generated.',
+        log_monitoringStarted: 'Monitoring started.',
+        log_monitoringPaused: 'Monitoring paused.',
+        log_probeError: 'Probe {type}: {error} ({timeout}ms threshold)',
+        log_failoverSwitched: '[Failover] Threshold reached. Switched active probe to {host}',
+        log_spikeDetected: 'Latency spike detected: {latency} ms',
+        log_stressStarted: 'Congestion simulation started with concurrent downloads: {count}',
+        log_stressWorkerFailed: 'Congestion download worker failed {id}: {error}',
+        log_browserOffline: 'Browser reported network offline.',
+        log_browserOnline: 'Browser reported network online.',
+        reportTitle: 'Network Stability Report', period: 'Period', endpoint: 'Endpoint', grade: 'Grade',
+        current: 'Current Latency', average: 'Average Latency', minMax: 'Min / Max Latency', jitter: 'Jitter',
+        loss: 'Fail / Timeout Rate', bufferDelta: 'Congestion Delta', recentEvents: 'Recent Events', noNotableEvents: 'No notable events recorded.',
+        warmUpNote: 'Warm-up (excluded from grade)',
+        gradeExcellent: 'Excellent', gradeGreat: 'Great', gradeGood: 'Good', gradeMarginal: 'Marginal', gradeUnstable: 'Unstable', gradeNoData: 'No data',
+        chartMissing: 'Chart library failed to load. The live curve is unavailable. Check network/CDN and reload.',
+        metricsAria: 'Network metrics summary', langToggleAria: 'Switch language', chartAria: 'Latency and jitter chart',
+        helpBtnText: 'Help', helpBtnAria: 'Open features and grading guide window',
+        helpModalTitle: '💡 Features & Grading Scale Guide',
+        featuresHead: 'Core Features',
+        f1Title: 'Live Probe', f1Desc: 'Probes every second with P50/P95 percentile chart & dual-endpoint Failover.',
+        f2Title: 'Jitter & Spike Logging', f2Desc: 'Calculates rolling Jitter/MAD and logs latency spikes automatically.',
+        f3Title: 'Reliability & Loss', f3Desc: 'Applies Wilson score interval to accurately gauge timeouts and loss.',
+        f4Title: 'Congestion Simulation', f4Desc: 'Runs background download streams to measure Bufferbloat impact.',
+        f5Title: 'Background Safeguard', f5Desc: 'Pauses canvas rendering in hidden tabs to save CPU & GPU resources.',
+        gradingHead: 'Enterprise Grading Scale (0 - 100)',
+        gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
+        thGrade: 'Grade', thScore: 'Score', thDesc: 'Experience & Recommendations',
+        sDesc: 'Excellent: Ultra-low latency (<50ms) with zero connection drops.',
+        aDesc: 'Good: Latency 180ms~480ms, ideal for office work, online calls & warehouse barcode scanning.',
+        bDesc: 'Marginal: Slight latency fluctuations; high-frequency operations may notice mild lag.',
+        cDesc: 'Unstable/Poor: High latency or frequent timeouts; check network connection.',
+        warmUpRuleDesc: '💡 Dynamic Warm-up Threshold: When N > 100, 60 samples are required before displaying grade; when N ≤ 100, 30 samples are required to prevent initial skewed rating.',
+        gradeTooltipNotEnough: 'Insufficient test samples ({progress}). Rating will display after reaching threshold.',
+        gradeTooltipRating: 'Grade: {label} (Score {score}/100) · Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with Bottleneck Cap guard.',
+        formulaHead: 'Exact Calculation Formula',
+        formulaWeightsTitle: 'Weighted Score Formula',
+        formulaWeightsText: 'Score = 35% × Latency + 25% × Jitter + 30% × Loss + 10% × Spike',
+        formulaCapTitle: 'Bottleneck Cap Guard',
+        formulaCapText: 'FinalScore = min( WeightedScore, LossScore + 18, LatencyScore + 18 )',
+        formulaCapDesc: 'When connection drops severely (LossScore = 0), FinalScore is capped at 18 (Grade F) to prevent high-latency masking.',
+        formulaRangesTitle: 'Metric Score Range Thresholds (100 ~ 0 pts)',
+        formulaRangesText: '• Latency (p50/p95): 180~480ms / 300~750ms   • Jitter (Jitter/MAD): 40~130ms / 30~100ms   • Loss: 2.5~12%   • Spike: 8~32%'
+      }
+    };
+
+    const APP_VERSION = 'v0.1.2';
+    const STORAGE_KEY = 'lagcheck-light-v1';
+    const DEFAULTS = Object.freeze({
+      endpoint: 'https://www.cloudflare.com/cdn-cgi/trace',
+      fallbackEndpoint: 'https://checkip.amazonaws.com',
+      downloadUrl: 'https://speed.cloudflare.com/__down?bytes=5000000',
+      intervalMs: 1000,
+      timeoutMs: 2000,
+      failoverThreshold: 5,
+      percentileN: 100,
+      maxSamples: 360,
+      jitterWindow: 20,
+      stressConcurrency: 2,
+      warmUpCount: 3,
+      chartWindowMs: 60000
+    });
+
+    const state = {
+      lang: 'zh', chartMode: 'live', running: false, stress: false, loopTimer: null, inFlightProbe: null,
+      stressControllers: new Set(), sent: 0, failed: 0, samples: [], eventLog: [],
+      recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
+      underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
+      settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined'
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const t = (key) => I18N[state.lang][key] || I18N.en[key] || key;
+    const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const els = {
+      helpBtn: $('helpBtn'), helpModal: $('helpModal'), modalCloseBtn: $('modalCloseBtn'),
+      langToggle: $('langToggle'), statusPill: $('statusPill'), statusDot: $('statusDot'), statusText: $('statusText'),
+      gradeBadge: $('gradeBadge'), gradeText: $('gradeText'), currentLatency: $('currentLatency'), avgLatency: $('avgLatency'), minLatency: $('minLatency'),
+      maxLatency: $('maxLatency'), latencyTrend: $('latencyTrend'), jitter: $('jitter'), lossRate: $('lossRate'),
+      requestCount: $('requestCount'), failCount: $('failCount'), maxSpike: $('maxSpike'), stressState: $('stressState'),
+      bufferbloatDelta: $('bufferbloatDelta'), startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'),
+      clearLogBtn: $('clearLogBtn'), activeEndpointBadge: $('activeEndpointBadge'), endpointInput: $('endpointInput'),
+      fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
+      timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'),
+      stressToggle: $('stressToggle'), copyReportBtn: $('copyReportBtn'), exportCsvBtn: $('exportCsvBtn'),
+      actionToast: $('actionToast'), eventLog: $('eventLog'), chartTitle: $('chartTitle'), chartHelp: $('chartHelp'),
+      modeLiveBtn: $('modeLiveBtn'), modePercentileBtn: $('modePercentileBtn'),
+      chartMissing: $('chartMissing'), summaryStrip: document.querySelector('.summary-strip'), latencyChart: $('latencyChart')
+    };
+
+    function loadPersisted() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          lang: state.lang,
+          chartMode: state.chartMode,
+          endpoint: state.settings.endpoint,
+          fallbackEndpoint: state.settings.fallbackEndpoint,
+          downloadUrl: state.settings.downloadUrl,
+          intervalMs: state.settings.intervalMs,
+          timeoutMs: state.settings.timeoutMs,
+          failoverThreshold: state.settings.failoverThreshold,
+          percentileN: state.settings.percentileN
+        }));
+      } catch { /* ignore quota / private mode */ }
+    }
+
+    function applyPersisted() {
+      const saved = loadPersisted();
+      if (!saved || typeof saved !== 'object') return;
+      if (saved.lang === 'zh' || saved.lang === 'en') state.lang = saved.lang;
+      if (saved.chartMode === 'live' || saved.chartMode === 'percentile') state.chartMode = saved.chartMode;
+      state.settings.endpoint = normalizeUrl(saved.endpoint, DEFAULTS.endpoint);
+      state.settings.fallbackEndpoint = normalizeUrl(saved.fallbackEndpoint, DEFAULTS.fallbackEndpoint);
+      state.settings.downloadUrl = normalizeUrl(saved.downloadUrl, DEFAULTS.downloadUrl);
+      state.settings.intervalMs = clampNumber(saved.intervalMs, 200, 2000, DEFAULTS.intervalMs);
+      state.settings.timeoutMs = clampNumber(saved.timeoutMs, 500, 10000, DEFAULTS.timeoutMs);
+      state.settings.failoverThreshold = clampNumber(saved.failoverThreshold, 1, 20, DEFAULTS.failoverThreshold);
+      state.settings.percentileN = clampNumber(saved.percentileN, 10, 300, DEFAULTS.percentileN);
+    }
+
+    function createChartStub() {
+      return {
+        data: {
+          labels: [],
+          datasets: [
+            { label: '', data: [], pointBackgroundColor: [], pointBorderColor: [], pointRadius: [] },
+            { label: '', data: [] }
+          ]
+        },
+        options: { scales: { y: { title: { text: '' } } } },
+        update() {}
+      };
+    }
+
+    applyPersisted();
+    const versionEl = $('appVersion');
+    if (versionEl) versionEl.textContent = APP_VERSION;
+    els.endpointInput.value = state.settings.endpoint;
+    els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
+    els.downloadInput.value = state.settings.downloadUrl;
+    els.intervalInput.value = state.settings.intervalMs;
+    els.timeoutInput.value = state.settings.timeoutMs;
+    els.failoverThresholdInput.value = state.settings.failoverThreshold;
+    els.percentileNInput.value = state.settings.percentileN;
+
+    if (!state.chartReady && els.chartMissing) {
+      els.chartMissing.dataset.visible = 'true';
+      els.chartMissing.hidden = false;
+    }
+
+    const chart = state.chartReady
+      ? new Chart(els.latencyChart, {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: t('latencyDataset'), data: [], borderColor: '#2563eb',
+                backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                pointBackgroundColor: [], pointBorderColor: [], pointRadius: [],
+                pointHoverRadius: 7, borderWidth: 2.5, tension: 0.35, fill: true, spanGaps: false
+              },
+              {
+                label: t('jitterDataset'), data: [], borderColor: '#059669',
+                backgroundColor: 'rgba(34, 197, 94, 0.08)', pointRadius: 0, borderWidth: 2, tension: 0.35, yAxisID: 'y'
+              }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: prefersReducedMotion() ? 0 : 220 },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { labels: { color: '#334155', usePointStyle: true, boxWidth: 9, boxHeight: 9 } },
+              tooltip: {
+                backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderWidth: 1,
+                titleColor: '#0f172a', bodyColor: '#334155',
+                callbacks: {
+                  title: (items) => {
+                    if (!items.length) return '';
+                    if (state.chartMode === 'percentile') {
+                      const idx = items[0].dataIndex;
+                      const total = chart.data.labels.length;
+                      const pct = total > 1 ? ((idx / (total - 1)) * 100).toFixed(1) : '100';
+                      return `#${idx + 1} (${pct}%)`;
+                    }
+                    return items[0].label;
+                  },
+                  label: (item) => {
+                    if (state.chartMode === 'percentile') {
+                      if (item.datasetIndex === 0) {
+                        return `${item.dataset.label}: ${item.raw == null ? t('tooltipTimeout') : item.raw.toFixed(1)} ms`;
+                      }
+                      return `${item.dataset.label}`;
+                    }
+                    return `${item.dataset.label}: ${item.raw == null ? t('tooltipTimeout') : item.raw.toFixed(1)} ms`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { ticks: { color: '#64748b', maxTicksLimit: 8 }, grid: { color: '#e2e8f0' } },
+              y: {
+                beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' },
+                title: { display: true, text: t('axisMs'), color: '#64748b' }
+              }
+            }
+          }
+        })
+      : createChartStub();
+
+    function setChartMode(mode, { skipRebuild = false } = {}) {
+      if (mode !== 'live' && mode !== 'percentile') return;
+      state.chartMode = mode;
+      if (els.modeLiveBtn && els.modePercentileBtn) {
+        els.modeLiveBtn.classList.toggle('active', mode === 'live');
+        els.modeLiveBtn.setAttribute('aria-selected', mode === 'live' ? 'true' : 'false');
+        els.modePercentileBtn.classList.toggle('active', mode === 'percentile');
+        els.modePercentileBtn.setAttribute('aria-selected', mode === 'percentile' ? 'true' : 'false');
+      }
+      if (els.chartTitle) els.chartTitle.textContent = mode === 'live' ? t('chartTitle') : t('chartTitlePercentile');
+      if (els.chartHelp) els.chartHelp.textContent = mode === 'live' ? t('chartHelp') : t('chartHelpPercentile');
+      if (!skipRebuild) {
+        if (mode === 'percentile') {
+          rebuildPercentileChart();
+        } else {
+          rebuildChartFromSamples();
+        }
+      }
+      persist();
+    }
+
+    function setLanguage(lang) {
+      state.lang = lang;
+      document.documentElement.lang = lang === 'zh' ? 'zh-Hant-TW' : 'en';
+      document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+      document.querySelectorAll('[data-i18n-aria]').forEach((node) => {
+        node.setAttribute('aria-label', t(node.dataset.i18nAria));
+      });
+      els.langToggle.textContent = lang === 'zh' ? 'EN' : '中';
+      els.langToggle.setAttribute('aria-label', t('langToggleAria'));
+      if (els.latencyChart) els.latencyChart.setAttribute('aria-label', t('chartAria'));
+      setChartMode(state.chartMode, { skipRebuild: false });
+      renderLog();
+      updateUI({ skipChart: true });
+      persist();
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+    }
+
+    function normalizeUrl(raw, fallback) {
+      try {
+        const url = new URL(String(raw || '').trim());
+        if (!['http:', 'https:'].includes(url.protocol)) throw new Error('unsupported protocol');
+        return url.toString();
+      } catch {
+        return fallback;
+      }
+    }
+
+    function updateSettingsFromInputs() {
+      state.settings.endpoint = normalizeUrl(els.endpointInput.value, DEFAULTS.endpoint);
+      state.settings.fallbackEndpoint = normalizeUrl(els.fallbackEndpointInput.value, DEFAULTS.fallbackEndpoint);
+      state.settings.downloadUrl = normalizeUrl(els.downloadInput.value, DEFAULTS.downloadUrl);
+      state.settings.intervalMs = clampNumber(els.intervalInput.value, 200, 2000, DEFAULTS.intervalMs);
+      state.settings.timeoutMs = clampNumber(els.timeoutInput.value, 500, 10000, DEFAULTS.timeoutMs);
+      state.settings.failoverThreshold = clampNumber(els.failoverThresholdInput.value, 1, 20, DEFAULTS.failoverThreshold);
+      state.settings.percentileN = clampNumber(els.percentileNInput.value, 10, 300, DEFAULTS.percentileN);
+      els.endpointInput.value = state.settings.endpoint;
+      els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
+      els.downloadInput.value = state.settings.downloadUrl;
+      els.intervalInput.value = state.settings.intervalMs;
+      els.timeoutInput.value = state.settings.timeoutMs;
+      els.failoverThresholdInput.value = state.settings.failoverThreshold;
+      els.percentileNInput.value = state.settings.percentileN;
+      persist();
+    }
+
+    function localeTag() { return state.lang === 'zh' ? 'zh-TW' : 'en-US'; }
+    function formatTime(ts) { return new Date(ts).toLocaleTimeString(localeTag(), { hour12: false }); }
+
+    function validSamples(includeWarmUp = false) {
+      return state.samples.filter((s) => s.status === 'ok' && Number.isFinite(s.latency) && (includeWarmUp || !s.warmUp));
+    }
+
+    function recentSamples(windowMs = state.settings.chartWindowMs, includeWarmUp = false) {
+      const cutoff = Date.now() - windowMs;
+      const recent = state.samples.filter((s) => s.timestamp >= cutoff && (includeWarmUp || !s.warmUp));
+      if (recent.length) return recent;
+      const fallback = state.samples.filter((s) => includeWarmUp || !s.warmUp);
+      return fallback.length ? fallback.slice() : state.samples.slice();
+    }
+
+    function mean(values) { return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null; }
+
+    function percentile(values, p) {
+      if (!values.length) return null;
+      const sorted = values.slice().sort((a, b) => a - b);
+      const pos = (sorted.length - 1) * p;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      return sorted[base + 1] == null ? sorted[base] : sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+    }
+
+    function median(values) { return percentile(values, 0.5); }
+    function mad(values) {
+      const m = median(values);
+      if (m == null) return 0;
+      return median(values.map((v) => Math.abs(v - m))) || 0;
+    }
+    function ewma(values, alpha = 0.2) {
+      if (!values.length) return 0;
+      return values.reduce((acc, value, index) => index === 0 ? value : alpha * value + (1 - alpha) * acc, values[0]);
+    }
+    function scoreRange(value, good, bad) {
+      if (value == null || !Number.isFinite(value)) return 0;
+      if (value <= good) return 100;
+      if (value >= bad) return 0;
+      return 100 * (bad - value) / (bad - good);
+    }
+    function wilsonUpper(failed, total, z = 1.96) {
+      if (!total) return 1;
+      const phat = failed / total;
+      const z2 = z * z;
+      return (phat + z2 / (2 * total) + z * Math.sqrt((phat * (1 - phat) + z2 / (4 * total)) / total)) / (1 + z2 / total);
+    }
+    function rawGradeForScore(score) {
+      if (score >= 95) return { grade: 'A+', color: 'emerald', label: t('gradeExcellent') };
+      if (score >= 85) return { grade: 'A', color: 'green', label: t('gradeGreat') };
+      if (score >= 75) return { grade: 'B', color: 'sky', label: t('gradeGood') };
+      if (score >= 60) return { grade: 'C', color: 'amber', label: t('gradeMarginal') };
+      return { grade: 'F', color: 'rose', label: t('gradeUnstable') };
+    }
+    function gradeRank(grade) { return ({ 'F': 0, 'C': 1, 'B': 2, 'A': 3, 'A+': 4 })[grade] ?? -1; }
+
+    function applyGradeHysteresis(raw, score) {
+      if (raw.grade === '—') { state.gradeState = null; return raw; }
+      const current = state.gradeState;
+      if (!current) {
+        state.gradeState = { shown: raw.grade, pending: null, count: 0, lastScore: score };
+        return raw;
+      }
+      if (raw.grade === current.shown) {
+        state.gradeState = { shown: raw.grade, pending: null, count: 0, lastScore: score };
+        return raw;
+      }
+      const rawRank = gradeRank(raw.grade);
+      const shownRank = gradeRank(current.shown);
+      const pending = current.pending === raw.grade ? raw.grade : null;
+      const count = pending ? current.count + 1 : 1;
+      const downgrade = rawRank < shownRank;
+      const largeDrop = shownRank - rawRank >= 2;
+      const shouldSwitch = downgrade ? (largeDrop || count >= 2) : count >= 4;
+      if (shouldSwitch) {
+        state.gradeState = { shown: raw.grade, pending: null, count: 0, lastScore: score };
+        return raw;
+      }
+      state.gradeState = { shown: current.shown, pending: raw.grade, count, lastScore: score };
+      return { ...rawGradeForScore(current.lastScore ?? score), grade: current.shown, score, rawGrade: raw.grade, pendingCount: count };
+    }
+
+    function detectSpike(latency, status) {
+      if (status !== 'ok') return true;
+      const validBefore = [];
+      for (let i = state.samples.length - 1; i >= 0 && validBefore.length < 20; i -= 1) {
+        const s = state.samples[i];
+        if (s.status === 'ok' && Number.isFinite(s.latency) && !s.warmUp) validBefore.push(s.latency);
+      }
+      if (validBefore.length < 5) return latency > 100;
+      const baseline = validBefore.reduce((sum, v) => sum + v, 0) / validBefore.length;
+      return latency > Math.max(100, baseline * 2);
+    }
+
+    function pointStyle(sample) {
+      if (sample.status !== 'ok') return { color: '#ef4444', radius: 3.5 };
+      if (sample.spike) return { color: '#d97706', radius: 3.5 };
+      if (sample.latency > 100) return { color: '#d97706', radius: 1.2 };
+      if (sample.warmUp) return { color: '#94a3b8', radius: 1.2 };
+      return { color: '#2563eb', radius: 1.2 };
+    }
+
+    function currentStats() {
+      const sessionValid = validSamples(false);
+      const recent = recentSamples(state.settings.chartWindowMs, false);
+      const valid = recent.filter((s) => s.status === 'ok' && Number.isFinite(s.latency));
+      const values = valid.map((s) => s.latency);
+      const allValues = sessionValid.map((s) => s.latency);
+      const displayValid = validSamples(true);
+      const displayValues = displayValid.map((s) => s.latency);
+      const avg = mean(values);
+      const min = displayValues.length ? Math.min(...displayValues) : null;
+      const max = displayValues.length ? Math.max(...displayValues) : null;
+      const current = displayValues.length ? displayValues.at(-1) : null;
+      const p50 = percentile(values, 0.5);
+      const p95 = percentile(values, 0.95);
+      const jitterValues = valid.map((s) => s.jitter).filter(Number.isFinite);
+      const jitter = ewma(jitterValues, 0.2);
+      const latencyMad = mad(values);
+      const failedRecent = recent.filter((s) => s.status !== 'ok').length;
+      const sentRecent = recent.length;
+      const loss = sentRecent ? (failedRecent / sentRecent) * 100 : 0;
+      const wilsonLoss = wilsonUpper(failedRecent, sentRecent) * 100;
+      const spikeCount = recent.filter((s) => s.spike).length;
+      const spikeRate = sentRecent ? (spikeCount / sentRecent) * 100 : 0;
+      const spike = avg != null && max != null ? Math.max(0, max - avg) : null;
+      return { valid, recent, avg, min, max, current, p50, p95, jitter, latencyMad, loss, wilsonLoss, spikeRate, spike, sentRecent, failedRecent };
+    }
+
+    function gradeFor(stats) {
+      if (stats.avg == null) return { grade: '—', color: 'slate', label: t('gradeNoData'), score: null, details: null };
+
+      // 動態暖機門檻判斷：N > 100 需累積 60 次；N <= 100 需累積 30 次
+      const requiredSamples = (state.settings.percentileN || 100) > 100 ? 60 : 30;
+      if (stats.sentRecent < requiredSamples) {
+        return {
+          grade: '—',
+          color: 'slate',
+          label: `${t('gradeNoData')} (${stats.sentRecent}/${requiredSamples})`,
+          score: null,
+          details: null
+        };
+      }
+
+      // 業界級短板封頂對數模型 (Bottleneck-Capped Scale)
+      // 1. 寬容區間對數減分 (180ms/2.5% loss 內保持高分)
+      const latencyScore = 0.5 * scoreRange(stats.p50, 180, 480) + 0.5 * scoreRange(stats.p95, 300, 750);
+      const jitterScore = 0.6 * scoreRange(stats.jitter, 40, 130) + 0.4 * scoreRange(stats.latencyMad, 30, 100);
+      const lossScore = scoreRange(stats.wilsonLoss, 2.5, 12);
+      const spikeScore = scoreRange(stats.spikeRate, 8, 32);
+      const bufferDelta = state.underLoadAvg != null && state.idleBaseline != null
+        ? Math.max(0, state.underLoadAvg - state.idleBaseline) : null;
+      const bufferScore = bufferDelta == null ? null : scoreRange(bufferDelta, 45, 220);
+
+      const weights = bufferScore == null
+        ? { latency: 0.35, jitter: 0.25, loss: 0.30, spike: 0.10 }
+        : { latency: 0.30, jitter: 0.20, loss: 0.30, spike: 0.10, buffer: 0.10 };
+
+      const rawWeightedScore = latencyScore * weights.latency + jitterScore * weights.jitter
+        + lossScore * weights.loss + spikeScore * weights.spike + (bufferScore || 0) * (weights.buffer || 0);
+
+      // 2. 短板瓶頸封頂防護：防範斷線 (LossScore 0分) 被優良延遲拉高總分的木桶效應
+      const bottleneckCap = Math.min(lossScore + 18, latencyScore + 18);
+      let score = Math.min(rawWeightedScore, bottleneckCap);
+
+      const sampleCap = stats.sentRecent < 10 ? 88 : stats.sentRecent < 30 ? 94 : 100;
+      score = Math.max(0, Math.min(sampleCap, score));
+      const raw = { ...rawGradeForScore(score), score, details: { latencyScore, jitterScore, lossScore, spikeScore, bufferScore, bufferDelta, bottleneckCap } };
+      return applyGradeHysteresis(raw, score);
+    }
+
+    function setGradeBadge(grade) {
+      const colors = { slate: '#cbd5e1', emerald: '#059669', green: '#047857', sky: '#2563eb', amber: '#d97706', rose: '#dc2626' };
+      els.gradeText.style.color = colors[grade.color] || colors.slate;
+      els.gradeText.textContent = grade.grade;
+
+      const requiredSamples = (state.settings.percentileN || 100) > 100 ? 60 : 30;
+      let title = '';
+      if (grade.grade === '—') {
+        const progressMatch = grade.label ? grade.label.match(/\((\d+\/\d+)\)/) : null;
+        const progressStr = progressMatch ? progressMatch[1] : `${state.sent || 0}/${requiredSamples}`;
+        title = t('gradeTooltipNotEnough').replace('{progress}', progressStr);
+      } else {
+        const scoreStr = grade.score == null ? 'N/A' : grade.score.toFixed(1);
+        title = t('gradeTooltipRating').replace('{label}', grade.label || '').replace('{score}', scoreStr);
+      }
+
+      els.gradeText.title = title;
+      if (els.gradeBadge) {
+        els.gradeBadge.title = title;
+        els.gradeBadge.setAttribute('data-tooltip', title);
+      }
+      els.gradeText.setAttribute('aria-label', title || grade.grade);
+    }
+
+    function setStatus(mode) {
+      const map = {
+        live: [t('live'), 'status-dot live'],
+        paused: [t('paused'), 'status-dot'],
+        offline: [t('offline'), 'status-dot offline'],
+        stress: [t('stress'), 'status-dot stress']
+      };
+      const [text, dotClass] = map[mode];
+      els.statusText.textContent = text;
+      els.statusDot.className = dotClass;
+    }
+
+    function fmt(value, digits = 1) {
+      return value == null || !Number.isFinite(value) ? '—' : value.toFixed(digits);
+    }
+
+    function clearChart() {
+      chart.data.labels = [];
+      chart.data.datasets[0].data = [];
+      chart.data.datasets[1].data = [];
+      chart.data.datasets[0].pointBackgroundColor = [];
+      chart.data.datasets[0].pointBorderColor = [];
+      chart.data.datasets[0].pointRadius = [];
+      state.chartTimestamps = [];
+      chart.update('none');
+    }
+
+    function shiftChartFront() {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+      chart.data.datasets[1].data.shift();
+      chart.data.datasets[0].pointBackgroundColor.shift();
+      chart.data.datasets[0].pointBorderColor.shift();
+      chart.data.datasets[0].pointRadius.shift();
+      state.chartTimestamps.shift();
+    }
+
+    function pruneChartWindow() {
+      const maxN = state.settings.percentileN || 100;
+      while (state.chartTimestamps.length > maxN) shiftChartFront();
+    }
+
+    function appendChartSample(sample) {
+      state.chartTimestamps.push(sample.timestamp);
+      if (state.chartMode === 'percentile') {
+        rebuildPercentileChart();
+        return;
+      }
+      const style = pointStyle(sample);
+      chart.data.labels.push(formatTime(sample.timestamp));
+      chart.data.datasets[0].data.push(sample.status === 'ok' ? sample.latency : null);
+      chart.data.datasets[1].data.push(sample.status === 'ok' ? sample.jitter : null);
+      chart.data.datasets[0].pointBackgroundColor.push(style.color);
+      chart.data.datasets[0].pointBorderColor.push(style.color);
+      chart.data.datasets[0].pointRadius.push(style.radius);
+      pruneChartWindow();
+      if (shouldRenderChart()) chart.update('none');
+    }
+
+    function rebuildChartLabels() {
+      chart.data.labels = state.chartTimestamps.map((ts) => formatTime(ts));
+      if (shouldRenderChart()) chart.update('none');
+    }
+
+    function rebuildPercentileChart() {
+      if (!shouldRenderChart()) return;
+      const N = state.settings.percentileN || 100;
+      const validSamples = state.samples.filter((s) => s.status === 'ok' && Number.isFinite(s.latency)).slice(-N);
+      const latencies = validSamples.map((s) => s.latency).sort((a, b) => a - b);
+      const count = latencies.length;
+
+      chart.data.labels = [];
+      chart.data.datasets = [
+        {
+          label: t('percentileDataset'),
+          data: [],
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.12)',
+          pointBackgroundColor: [],
+          pointBorderColor: [],
+          pointRadius: [],
+          pointHoverRadius: 4.5,
+          borderWidth: 2.5,
+          tension: 0.2,
+          fill: true,
+          spanGaps: false
+        }
+      ];
+
+      if (!count) {
+        chart.update('none');
+        return;
+      }
+
+      const getPercentile = (p) => {
+        if (count === 1) return latencies[0];
+        const idx = (count - 1) * (p / 100);
+        const lower = Math.floor(idx);
+        const upper = Math.ceil(idx);
+        const weight = idx - lower;
+        return latencies[lower] * (1 - weight) + latencies[upper] * weight;
+      };
+
+      const p50 = getPercentile(50);
+      const p75 = getPercentile(75);
+      const p90 = getPercentile(90);
+      const p95 = getPercentile(95);
+      const p99 = getPercentile(99);
+
+      const idxP50 = Math.round((count - 1) * 0.50);
+      const idxP75 = Math.round((count - 1) * 0.75);
+      const idxP90 = Math.round((count - 1) * 0.90);
+      const idxP95 = Math.round((count - 1) * 0.95);
+      const idxP99 = Math.round((count - 1) * 0.99);
+
+      const ptColors = [];
+      const ptRadii = [];
+
+      for (let i = 0; i < count; i += 1) {
+        const pctStr = count > 1 ? `${((i / (count - 1)) * 100).toFixed(0)}%` : '100%';
+        chart.data.labels.push(`#${i + 1} (${pctStr})`);
+        chart.data.datasets[0].data.push(latencies[i]);
+
+        if (i === idxP99) {
+          ptColors.push('#7c3aed');
+          ptRadii.push(4);
+        } else if (i === idxP95) {
+          ptColors.push('#dc2626');
+          ptRadii.push(4);
+        } else if (i === idxP90) {
+          ptColors.push('#d97706');
+          ptRadii.push(4);
+        } else if (i === idxP75) {
+          ptColors.push('#2563eb');
+          ptRadii.push(4);
+        } else if (i === idxP50) {
+          ptColors.push('#059669');
+          ptRadii.push(4);
+        } else {
+          ptColors.push('#2563eb');
+          ptRadii.push(count > 60 ? 0 : 1.2);
+        }
+      }
+
+      chart.data.datasets[0].pointBackgroundColor = ptColors;
+      chart.data.datasets[0].pointBorderColor = ptColors;
+      chart.data.datasets[0].pointRadius = ptRadii;
+
+      const createGuideDataset = (labelKey, value, color) => ({
+        label: `${t(labelKey)} (${value.toFixed(1)} ms)`,
+        data: Array(count).fill(value),
+        borderColor: color,
+        borderDash: [5, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        fill: false
+      });
+
+      chart.data.datasets.push(createGuideDataset('p50Label', p50, '#059669'));
+      chart.data.datasets.push(createGuideDataset('p75Label', p75, '#2563eb'));
+      chart.data.datasets.push(createGuideDataset('p90Label', p90, '#d97706'));
+      chart.data.datasets.push(createGuideDataset('p95Label', p95, '#dc2626'));
+      chart.data.datasets.push(createGuideDataset('p99Label', p99, '#7c3aed'));
+
+      chart.update('none');
+    }
+
+    function rebuildChartFromSamples() {
+      clearChart();
+      chart.data.datasets = [
+        {
+          label: t('latencyDataset'), data: [], borderColor: '#2563eb',
+          backgroundColor: 'rgba(56, 189, 248, 0.12)',
+          pointBackgroundColor: [], pointBorderColor: [], pointRadius: [],
+          pointHoverRadius: 4.5, borderWidth: 2.5, tension: 0.35, fill: true, spanGaps: false
+        },
+        {
+          label: t('jitterDataset'), data: [], borderColor: '#059669',
+          backgroundColor: 'rgba(34, 197, 94, 0.08)', pointRadius: 0, borderWidth: 2, tension: 0.35, yAxisID: 'y'
+        }
+      ];
+      const maxN = state.settings.percentileN || 100;
+      const list = state.samples.slice(-maxN);
+      for (const sample of list) {
+        const style = pointStyle(sample);
+        chart.data.labels.push(formatTime(sample.timestamp));
+        chart.data.datasets[0].data.push(sample.status === 'ok' ? sample.latency : null);
+        chart.data.datasets[1].data.push(sample.status === 'ok' ? sample.jitter : null);
+        chart.data.datasets[0].pointBackgroundColor.push(style.color);
+        chart.data.datasets[0].pointBorderColor.push(style.color);
+        chart.data.datasets[0].pointRadius.push(style.radius);
+        state.chartTimestamps.push(sample.timestamp);
+      }
+      if (shouldRenderChart()) chart.update('none');
+    }
+
+    function updateUI({ skipChart = false } = {}) {
+      const stats = currentStats();
+      const grade = gradeFor(stats);
+      setGradeBadge(grade);
+      setStatus(!state.running ? 'paused' : state.stress ? 'stress' : navigator.onLine ? 'live' : 'offline');
+      els.currentLatency.textContent = fmt(stats.current);
+      els.avgLatency.textContent = `${fmt(stats.avg)} ms`;
+      els.minLatency.textContent = `${fmt(stats.min)} ms`;
+      els.maxLatency.textContent = `${fmt(stats.max)} ms`;
+      els.jitter.textContent = fmt(stats.jitter);
+      els.lossRate.textContent = fmt(stats.loss);
+      els.requestCount.textContent = `${state.sent} ${t('sentShort')}`;
+      els.failCount.textContent = state.failed;
+      els.maxSpike.textContent = fmt(stats.spike);
+      els.stressState.textContent = state.stress ? t('underLoad') : t('idle');
+      els.bufferbloatDelta.textContent = state.underLoadAvg != null && state.idleBaseline != null
+        ? `${fmt(state.underLoadAvg - state.idleBaseline)} ms` : '—';
+      const previous = stats.valid.at(-2)?.latency;
+      if (stats.current == null || previous == null) {
+        els.latencyTrend.textContent = '—';
+        els.latencyTrend.style.color = '';
+      } else {
+        const delta = stats.current - previous;
+        els.latencyTrend.textContent = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`;
+        els.latencyTrend.style.color = delta > 20 ? 'var(--rose)' : delta > 5 ? 'var(--amber)' : 'var(--green)';
+      }
+      els.startBtn.setAttribute('aria-pressed', state.running ? 'true' : 'false');
+      els.pauseBtn.setAttribute('aria-pressed', state.running ? 'false' : 'true');
+
+      let currentHost = '—';
+      try { currentHost = new URL(getActiveProbeUrl()).hostname; } catch {}
+      if (els.activeEndpointBadge) {
+        els.activeEndpointBadge.textContent = `Active: ${currentHost}`;
+        els.activeEndpointBadge.title = getActiveProbeUrl();
+      }
+
+      if (!skipChart) {
+        if (state.chartMode === 'percentile') {
+          rebuildPercentileChart();
+        } else {
+          rebuildChartFromSamples();
+        }
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+    }
+
+    function formatLogMessage(e) {
+      if (e.key) {
+        let str = t(e.key);
+        if (e.params) {
+          for (const [k, v] of Object.entries(e.params)) {
+            str = str.replaceAll(`{${k}}`, v);
+          }
+        }
+        return str;
+      }
+      return e.message || '';
+    }
+
+    function logEntryHtml(e) {
+      const msg = formatLogMessage(e);
+      return `<div class="event-item"><div class="event-meta"><span>${escapeHtml(e.type)}</span><span>${formatTime(e.timestamp)}</span></div><p class="event-msg">${escapeHtml(msg)}</p></div>`;
+    }
+
+    function shouldRenderChart() {
+      return !document.hidden && state.chartReady;
+    }
+
+    function addLog(type, keyOrMsg, params = null) {
+      const entry = typeof keyOrMsg === 'string' && keyOrMsg.startsWith('log_')
+        ? { type, key: keyOrMsg, params, timestamp: Date.now() }
+        : { type, message: keyOrMsg, timestamp: Date.now() };
+      state.eventLog.unshift(entry);
+      if (state.eventLog.length > 100) state.eventLog.length = 100;
+      const empty = els.eventLog.querySelector('.empty-log');
+      if (empty || !els.eventLog.children.length) {
+        renderLog();
+        return;
+      }
+      els.eventLog.insertAdjacentHTML('afterbegin', logEntryHtml(entry));
+      while (els.eventLog.children.length > 100) els.eventLog.lastElementChild.remove();
+    }
+
+    function renderLog() {
+      if (!state.eventLog.length) {
+        els.eventLog.innerHTML = `<div class="empty-log">${t('noEvents')}</div>`;
+        return;
+      }
+      els.eventLog.innerHTML = state.eventLog.map(logEntryHtml).join('');
+    }
+
+    function getActiveProbeUrl() {
+      const primary = state.settings.endpoint || DEFAULTS.endpoint;
+      const fallback = state.settings.fallbackEndpoint || DEFAULTS.fallbackEndpoint;
+      return state.activeEndpointIndex === 1 ? fallback : primary;
+    }
+
+    function buildProbeUrl() {
+      const url = new URL(getActiveProbeUrl());
+      url.searchParams.set('_lagcheck_t', `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+      return url.toString();
+    }
+
+    async function measureLatency() {
+      const controller = new AbortController();
+      state.inFlightProbe = controller;
+      const timeoutId = setTimeout(() => controller.abort('timeout'), state.settings.timeoutMs);
+      const started = performance.now();
+      state.sent += 1;
+      try {
+        await fetch(buildProbeUrl(), {
+          method: 'GET', mode: 'no-cors', cache: 'no-store', credentials: 'omit',
+          redirect: 'follow', signal: controller.signal
+        });
+        const latency = performance.now() - started;
+        clearTimeout(timeoutId);
+        state.consecutiveFailures = 0;
+        recordSample({ status: 'ok', latency, error: '' });
+      } catch (error) {
+        clearTimeout(timeoutId);
+        state.failed += 1;
+        state.consecutiveFailures += 1;
+        const reason = controller.signal.aborted ? 'timeout' : 'failed';
+
+        const threshold = state.settings.failoverThreshold || DEFAULTS.failoverThreshold;
+        if (state.consecutiveFailures >= threshold) {
+          state.activeEndpointIndex = state.activeEndpointIndex === 0 ? 1 : 0;
+          state.consecutiveFailures = 0;
+          let targetHost = 'Backup Endpoint';
+          try { targetHost = new URL(getActiveProbeUrl()).hostname; } catch {}
+          addLog('info', 'log_failoverSwitched', { host: targetHost });
+        }
+
+        recordSample({ status: reason, latency: null, error: error?.message || reason });
+      } finally {
+        if (state.inFlightProbe === controller) state.inFlightProbe = null;
+      }
+    }
+
+    function pruneSamples() {
+      const cutoff = Date.now() - state.settings.chartWindowMs;
+      while (state.samples.length > state.settings.maxSamples) state.samples.shift();
+      while (state.samples.length > 1 && state.samples[0].timestamp < cutoff) state.samples.shift();
+    }
+
+    function recordSample({ status, latency, error }) {
+      const previousLatency = state.lastLatency;
+      let jitter = 0;
+      let diff = 0;
+      if (status === 'ok' && Number.isFinite(latency)) {
+        diff = previousLatency == null ? 0 : Math.abs(latency - previousLatency);
+        state.recentDiffs.push(diff);
+        while (state.recentDiffs.length > state.settings.jitterWindow) state.recentDiffs.shift();
+        jitter = mean(state.recentDiffs) || 0;
+        state.lastLatency = latency;
+      } else {
+        diff = 0;
+      }
+
+      const warmUp = state.samples.length < state.settings.warmUpCount;
+      const spike = warmUp
+        ? status !== 'ok'
+        : detectSpike(latency, status);
+
+      const sample = {
+        timestamp: Date.now(), latency, jitter, diff, status, error,
+        warmUp, spike, underLoad: state.stress
+      };
+      state.samples.push(sample);
+      pruneSamples();
+
+      if (!warmUp) {
+        if (status !== 'ok') {
+          addLog('timeout', 'log_probeError', { type: t(status === 'timeout' ? 'timeoutEvent' : 'failedEvent'), error: error || status, timeout: state.settings.timeoutMs });
+        } else if (spike) {
+          addLog('spike', 'log_spikeDetected', { latency: latency.toFixed(1) });
+        }
+      }
+
+      updateBaselines();
+      appendChartSample(sample);
+      updateUI({ skipChart: true });
+    }
+
+    function updateBaselines() {
+      const idle = state.samples.filter((s) => s.status === 'ok' && !s.underLoad && !s.warmUp && Number.isFinite(s.latency)).slice(-30);
+      const load = state.samples.filter((s) => s.status === 'ok' && s.underLoad && !s.warmUp && Number.isFinite(s.latency)).slice(-30);
+      if (!state.stress && idle.length >= 5) state.idleBaseline = idle.reduce((a, s) => a + s.latency, 0) / idle.length;
+      if (state.stress && load.length >= 3) state.underLoadAvg = load.reduce((a, s) => a + s.latency, 0) / load.length;
+    }
+
+    function scheduleNext(delay = state.settings.intervalMs) {
+      clearTimeout(state.loopTimer);
+      if (!state.running) return;
+      state.loopTimer = setTimeout(pollLoop, delay);
+    }
+
+    async function pollLoop() {
+      if (!state.running) return;
+      const started = performance.now();
+      await measureLatency();
+      scheduleNext(Math.max(0, state.settings.intervalMs - (performance.now() - started)));
+    }
+
+    function start() {
+      if (state.running) return;
+      updateSettingsFromInputs();
+      state.running = true;
+      addLog('info', 'log_monitoringStarted');
+      pollLoop();
+      updateUI({ skipChart: true });
+    }
+
+    function pause() {
+      state.running = false;
+      clearTimeout(state.loopTimer);
+      if (state.inFlightProbe) state.inFlightProbe.abort('paused');
+      addLog('info', 'log_monitoringPaused');
+      updateUI({ skipChart: true });
+    }
+
+    function reset() {
+      pauseStress();
+      state.running = false;
+      clearTimeout(state.loopTimer);
+      if (state.inFlightProbe) state.inFlightProbe.abort('reset');
+      Object.assign(state, {
+        running: false, sent: 0, failed: 0, samples: [], eventLog: [], recentDiffs: [],
+        chartTimestamps: [], lastLatency: null, idleBaseline: null, underLoadAvg: null, gradeState: null
+      });
+      clearChart();
+      renderLog();
+      updateUI({ skipChart: true });
+    }
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    async function stressWorker(workerId, controller) {
+      while (state.stress && !controller.signal.aborted) {
+        try {
+          const url = new URL(state.settings.downloadUrl);
+          url.searchParams.set('_lagcheck_stress', `${Date.now()}_${workerId}_${Math.random().toString(16).slice(2)}`);
+          const response = await fetch(url.toString(), { cache: 'no-store', credentials: 'omit', signal: controller.signal });
+          await response.arrayBuffer();
+        } catch (error) {
+          if (!controller.signal.aborted && state.stress) {
+            addLog('timeout', 'log_stressWorkerFailed', { id: workerId, error: error?.message || 'error' });
+            await sleep(800);
+          }
+        }
+      }
+    }
+
+    function startStress() {
+      if (state.stress) return;
+      updateSettingsFromInputs();
+      state.stress = true;
+      state.underLoadAvg = null;
+      addLog('info', 'log_stressStarted', { count: state.settings.stressConcurrency });
+      for (let i = 1; i <= state.settings.stressConcurrency; i += 1) {
+        const controller = new AbortController();
+        state.stressControllers.add(controller);
+        stressWorker(i, controller).finally(() => state.stressControllers.delete(controller));
+      }
+      updateUI({ skipChart: true });
+    }
+
+    function pauseStress() {
+      state.stress = false;
+      for (const controller of state.stressControllers) controller.abort('stress stopped');
+      state.stressControllers.clear();
+      els.stressToggle.checked = false;
+      updateUI({ skipChart: true });
+    }
+
+    function buildMarkdownReport() {
+      const stats = currentStats();
+      const grade = gradeFor(stats);
+      const locale = localeTag();
+      const period = state.samples.length
+        ? `${new Date(state.samples[0].timestamp).toLocaleString(locale)} - ${new Date(state.samples.at(-1).timestamp).toLocaleString(locale)}`
+        : 'No samples';
+      const delta = state.underLoadAvg != null && state.idleBaseline != null
+        ? `${(state.underLoadAvg - state.idleBaseline).toFixed(1)} ms` : 'N/A';
+      return [
+        `# ${t('reportTitle')}`, '',
+        `- Version: ${APP_VERSION}`,
+        `- ${t('period')}: ${period}`,
+        `- ${t('endpoint')}: ${state.settings.endpoint}`,
+        `- ${t('grade')}: ${grade.grade} (${grade.label}) · Score ${grade.score == null ? 'N/A' : grade.score.toFixed(1)}/100`,
+        `- ${t('current')}: ${fmt(stats.current)} ms`,
+        `- ${t('average')}: ${fmt(stats.avg)} ms`,
+        `- p50 / p95: ${fmt(stats.p50)} / ${fmt(stats.p95)} ms`,
+        `- ${t('minMax')}: ${fmt(stats.min)} / ${fmt(stats.max)} ms`,
+        `- ${t('jitter')}: ${fmt(stats.jitter)} ms · MAD ${fmt(stats.latencyMad)} ms`,
+        `- ${t('loss')}: ${fmt(stats.loss)}% recent · Wilson upper ${fmt(stats.wilsonLoss)}% (${state.failed}/${state.sent} session)`,
+        `- ${t('bufferDelta')}: ${delta}`,
+        '', `## ${t('recentEvents')}`,
+        ...(state.eventLog.slice(0, 10).map((e) => `- ${formatTime(e.timestamp)} [${e.type}] ${formatLogMessage(e)}`)),
+        state.eventLog.length ? '' : `- ${t('noNotableEvents')}`
+      ].join('\n');
+    }
+
+    async function copyReport() {
+      const report = buildMarkdownReport();
+      try {
+        await navigator.clipboard.writeText(report);
+        toast(t('copied'));
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = report;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+        toast(t('copied'));
+      }
+    }
+
+    function exportCsv() {
+      const rows = [['timestamp', 'latency_ms', 'jitter_ms', 'status', 'warm_up', 'spike']];
+      for (const s of state.samples) {
+        rows.push([
+          new Date(s.timestamp).toISOString(),
+          s.latency == null ? '' : s.latency.toFixed(3),
+          s.jitter == null ? '' : s.jitter.toFixed(3),
+          s.status,
+          s.warmUp ? '1' : '0',
+          s.spike ? '1' : '0'
+        ]);
+      }
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lagcheck_metrics_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast(t('csvDone'));
+    }
+
+    function toast(message) {
+      els.actionToast.textContent = message;
+      els.actionToast.setAttribute('role', 'status');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { els.actionToast.textContent = ''; }, 2600);
+    }
+
+    function openModal() {
+      if (!els.helpModal) return;
+      els.helpModal.removeAttribute('hidden');
+      els.helpModal.style.display = 'flex';
+      requestAnimationFrame(() => {
+        els.helpModal.classList.add('open');
+        els.helpModal.setAttribute('aria-hidden', 'false');
+      });
+    }
+
+    function closeModal() {
+      if (!els.helpModal) return;
+      els.helpModal.classList.remove('open');
+      els.helpModal.setAttribute('aria-hidden', 'true');
+      setTimeout(() => {
+        if (!els.helpModal.classList.contains('open')) {
+          els.helpModal.style.display = 'none';
+        }
+      }, 220);
+    }
+
+    if (els.helpBtn) els.helpBtn.addEventListener('click', openModal);
+    if (els.modalCloseBtn) els.modalCloseBtn.addEventListener('click', closeModal);
+    if (els.helpModal) {
+      els.helpModal.addEventListener('click', (e) => {
+        if (e.target === els.helpModal) closeModal();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && els.helpModal && els.helpModal.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    els.modeLiveBtn.addEventListener('click', () => setChartMode('live'));
+    els.modePercentileBtn.addEventListener('click', () => setChartMode('percentile'));
+    els.langToggle.addEventListener('click', () => setLanguage(state.lang === 'zh' ? 'en' : 'zh'));
+    els.startBtn.addEventListener('click', start);
+    els.pauseBtn.addEventListener('click', pause);
+    els.resetBtn.addEventListener('click', reset);
+    els.clearLogBtn.addEventListener('click', () => { state.eventLog = []; renderLog(); });
+    els.copyReportBtn.addEventListener('click', copyReport);
+    els.exportCsvBtn.addEventListener('click', exportCsv);
+    els.stressToggle.addEventListener('change', (e) => e.target.checked ? startStress() : pauseStress());
+    [els.endpointInput, els.fallbackEndpointInput, els.downloadInput, els.intervalInput, els.timeoutInput, els.failoverThresholdInput, els.percentileNInput]
+      .filter(Boolean)
+      .forEach((input) => input.addEventListener('change', () => {
+        updateSettingsFromInputs();
+        updateUI({ skipChart: true });
+        if (state.chartMode === 'percentile') rebuildPercentileChart();
+      }));
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        if (state.chartMode === 'percentile') {
+          rebuildPercentileChart();
+        } else {
+          rebuildChartFromSamples();
+        }
+      }
+    });
+    window.addEventListener('offline', () => { addLog('offline', 'log_browserOffline'); updateUI({ skipChart: true }); });
+    window.addEventListener('online', () => { addLog('info', 'log_browserOnline'); updateUI({ skipChart: true }); });
+    window.addEventListener('beforeunload', () => {
+      pauseStress();
+      if (state.inFlightProbe) state.inFlightProbe.abort('unload');
+    });
+    setLanguage(state.lang);
+  </script>
+</body>
+</html>
