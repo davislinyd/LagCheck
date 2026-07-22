@@ -1536,8 +1536,10 @@
     }
 
     function pruneSamples() {
-      const cutoff = Date.now() - state.settings.chartWindowMs;
-      while (state.samples.length > state.settings.maxSamples) state.samples.shift();
+      const windowMs = getChartWindowMs();
+      const cutoff = Date.now() - windowMs;
+      const maxN = Math.max(state.settings.percentileN || 100, state.settings.maxSamples || 360);
+      while (state.samples.length > maxN) state.samples.shift();
       while (state.samples.length > 1 && state.samples[0].timestamp < cutoff) state.samples.shift();
     }
 
