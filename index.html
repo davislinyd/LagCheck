@@ -585,9 +585,11 @@
             </div>
           </div>
           <div class="form-grid">
-            <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
-            <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
-            <label class="field"><span class="field-label" data-i18n="downloadLabel">壅塞模擬下載 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
+            <div class="action-grid">
+              <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
+              <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
+            </div>
+            <div id="actionToast" class="toast"></div>
             <div class="number-grid" style="grid-template-columns: repeat(2, 1fr);">
               <label class="field"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
               <label class="field"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="500" max="10000" step="100" /><span>ms</span></span></label>
@@ -598,11 +600,9 @@
               <span><span class="toggle-title" data-i18n="stressTitle">壅塞延遲模擬</span><span class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
               <input id="stressToggle" type="checkbox" />
             </label>
-            <div class="action-grid">
-              <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
-              <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
-            </div>
-            <div id="actionToast" class="toast"></div>
+            <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
+            <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
+            <label class="field"><span class="field-label" data-i18n="downloadLabel">壅塞模擬下載 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
           </div>
         </section>
 
@@ -721,6 +721,8 @@
         log_failoverSwitched: '[備援機制] 連續失敗達門檻，自動切換探測端點至 {host}',
         log_spikeDetected: '偵測到延遲尖峰: {latency} ms',
         log_stressStarted: '壅塞延遲模擬已開始，並行下載數: {count}',
+        log_stressCapReached: '[壅塞模擬] 累積下載已達安全上限 ({cap}MB)，已自動停止保護網路與流量。',
+        stressWarningConfirm: '⚠️ 警告：開啟「壅塞延遲模擬」將發起背景大流量下載，會佔用大量網路頻寬與瀏覽器系統資源。確定要開啟嗎？',
         log_stressWorkerFailed: '壅塞下載工作失敗 {id}: {error}',
         log_browserOffline: '瀏覽器回報網路離線。',
         log_browserOnline: '瀏覽器回報網路恢復連線。',
@@ -787,6 +789,8 @@
         log_failoverSwitched: '[Failover] Threshold reached. Switched active probe to {host}',
         log_spikeDetected: 'Latency spike detected: {latency} ms',
         log_stressStarted: 'Congestion simulation started with concurrent downloads: {count}',
+        log_stressCapReached: '[Congestion Test] Reached safety cap of {cap}MB. Automatically stopped to protect bandwidth.',
+        stressWarningConfirm: '⚠️ Warning: Enabling Congestion Simulation initiates heavy background downloads, consuming significant bandwidth and system resources. Continue?',
         log_stressWorkerFailed: 'Congestion download worker failed {id}: {error}',
         log_browserOffline: 'Browser reported network offline.',
         log_browserOnline: 'Browser reported network online.',
@@ -896,7 +900,7 @@
 
     const state = {
       lang: 'zh', chartMode: 'live', running: false, stress: false, loopTimer: null, inFlightProbe: null,
-      stressControllers: new Set(), sent: 0, failed: 0, samples: [], eventLog: [],
+      stressControllers: new Set(), stressBytes: 0, sent: 0, failed: 0, samples: [], eventLog: [],
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
       underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
       settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined'
@@ -1779,13 +1783,21 @@
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    const STRESS_MAX_BYTES = 100 * 1024 * 1024; // 100MB 安全流量上限
+
     async function stressWorker(workerId, controller) {
       while (state.stress && !controller.signal.aborted) {
+        if (state.stressBytes >= STRESS_MAX_BYTES) {
+          addLog('warn', 'log_stressCapReached', { cap: 100 });
+          pauseStress();
+          break;
+        }
         try {
           const url = new URL(state.settings.downloadUrl);
           url.searchParams.set('_lagcheck_stress', `${Date.now()}_${workerId}_${Math.random().toString(16).slice(2)}`);
           const response = await fetch(url.toString(), { cache: 'no-store', credentials: 'omit', signal: controller.signal });
-          await response.arrayBuffer();
+          const buf = await response.arrayBuffer();
+          state.stressBytes += (buf ? buf.byteLength : 5000000);
         } catch (error) {
           if (!controller.signal.aborted && state.stress) {
             addLog('timeout', 'log_stressWorkerFailed', { id: workerId, error: error?.message || 'error' });
@@ -1799,6 +1811,7 @@
       if (state.stress) return;
       updateSettingsFromInputs();
       state.stress = true;
+      state.stressBytes = 0;
       state.underLoadAvg = null;
       addLog('info', 'log_stressStarted', { count: state.settings.stressConcurrency });
       for (let i = 1; i <= state.settings.stressConcurrency; i += 1) {
@@ -1987,7 +2000,18 @@
     els.clearLogBtn.addEventListener('click', () => { state.eventLog = []; renderLog(); });
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
     els.exportCsvBtn.addEventListener('click', exportCsv);
-    els.stressToggle.addEventListener('change', (e) => e.target.checked ? startStress() : pauseStress());
+    els.stressToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        const ok = window.confirm(t('stressWarningConfirm'));
+        if (ok) {
+          startStress();
+        } else {
+          e.target.checked = false;
+        }
+      } else {
+        pauseStress();
+      }
+    });
     [els.endpointInput, els.fallbackEndpointInput, els.downloadInput, els.intervalInput, els.timeoutInput, els.failoverThresholdInput, els.percentileNInput]
       .filter(Boolean)
       .forEach((input) => input.addEventListener('change', () => {
