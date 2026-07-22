@@ -93,6 +93,27 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .client-info {
+      margin: 4px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .client-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line-soft);
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      letter-spacing: .01em;
+    }
     .top-actions {
       display: flex;
       align-items: center;
@@ -482,6 +503,10 @@
             <span class="version" id="appVersion" title="Version">v1.0.4</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合遊戲、會議、遠端桌面與直播排障。</p>
+          <div class="client-info">
+             <span id="clientOsChip" class="client-chip">🖥️ <span id="clientOs">—</span></span>
+             <span id="clientTzChip" class="client-chip">🕐 <span id="clientTz">—</span></span>
+          </div>
         </div>
       </div>
       <div class="top-actions">
@@ -794,6 +819,40 @@
     };
 
     const APP_VERSION = 'v1.0.4';
+
+    // ── Client info: OS/Browser + Timezone ──────────────────────────────
+    function detectClientInfo() {
+      const ua = navigator.userAgent;
+      let os = 'Unknown OS';
+      if (/Windows NT 10/.test(ua)) os = 'Windows 10/11';
+      else if (/Windows NT/.test(ua)) os = 'Windows';
+      else if (/iPhone/.test(ua)) os = 'iOS (iPhone)';
+      else if (/iPad/.test(ua)) os = 'iOS (iPad)';
+      else if (/Android/.test(ua)) os = 'Android';
+      else if (/Mac OS X/.test(ua) && !/iPhone|iPad/.test(ua)) os = 'macOS';
+      else if (/Linux/.test(ua)) os = 'Linux';
+
+      let browser = 'Unknown Browser';
+      if (/Edg\//.test(ua)) browser = 'Edge';
+      else if (/OPR\/|Opera/.test(ua)) browser = 'Opera';
+      else if (/Chrome\//.test(ua) && !/Chromium/.test(ua)) browser = 'Chrome';
+      else if (/Firefox\//.test(ua)) browser = 'Firefox';
+      else if (/Safari\//.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+      else if (/Chromium/.test(ua)) browser = 'Chromium';
+
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const offset = -new Date().getTimezoneOffset();
+      const sign = offset >= 0 ? '+' : '-';
+      const h = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
+      const m = String(Math.abs(offset) % 60).padStart(2, '0');
+      const offsetStr = `UTC${sign}${h}:${m}`;
+
+      const clientOsEl = document.getElementById('clientOs');
+      const clientTzEl = document.getElementById('clientTz');
+      if (clientOsEl) clientOsEl.textContent = `${os} · ${browser}`;
+      if (clientTzEl) clientTzEl.textContent = `${tz} (${offsetStr})`;
+    }
+    detectClientInfo();
     const STORAGE_KEY = 'lagcheck-light-v1';
     const DEFAULTS = Object.freeze({
       endpoint: 'https://www.cloudflare.com/cdn-cgi/trace',
