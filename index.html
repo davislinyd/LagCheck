@@ -1400,6 +1400,10 @@
     }
 
     function rebuildPercentileChart() {
+      clearChart();
+      if (chart && chart.options && chart.options.scales && chart.options.scales.y && chart.options.scales.y.title) {
+        chart.options.scales.y.title.text = t('axisMs');
+      }
       if (!shouldRenderChart()) return;
       const N = state.settings.percentileN || 100;
       const validSamples = state.samples.filter((s) => s.status === 'ok' && Number.isFinite(s.latency)).slice(-N);
@@ -1505,6 +1509,9 @@
 
     function rebuildChartFromSamples() {
       clearChart();
+      if (chart && chart.options && chart.options.scales && chart.options.scales.y && chart.options.scales.y.title) {
+        chart.options.scales.y.title.text = t('axisMs');
+      }
       chart.data.datasets = [
         {
           label: t('latencyDataset'), data: [], borderColor: '#2563eb',
