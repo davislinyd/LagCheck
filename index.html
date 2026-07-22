@@ -860,6 +860,7 @@
 
     function updateClientClock() {
       const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const offset = -now.getTimezoneOffset();
@@ -869,7 +870,7 @@
       const offsetStr = `UTC${sign}${h}:${m}`;
 
       const clientTzEl = document.getElementById('clientTz');
-      if (clientTzEl) clientTzEl.textContent = `${timeStr} · ${tz} (${offsetStr})`;
+      if (clientTzEl) clientTzEl.textContent = `${dateStr} ${timeStr} · ${tz} (${offsetStr})`;
     }
 
     detectClientInfo();
