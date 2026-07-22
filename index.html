@@ -258,6 +258,8 @@
     }
     .btn:hover { background: #f8fafc; border-color: #94a3b8; }
     .btn.primary { color: #fff; border-color: var(--blue); background: var(--blue); box-shadow: 0 6px 14px rgba(37, 99, 235, .16); }
+    .btn.running { color: #047857; border-color: #a7f3d0; background: #ecfdf5; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15); }
+    .btn.pause-active { color: #b45309; border-color: #fde68a; background: #fffbeb; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15); }
     .btn.danger { color: var(--rose); border-color: #fecaca; background: #fff7f7; }
     .chart-box { min-height: 0; padding: 8px; border: 1px solid var(--line-soft); border-radius: 12px; background: #ffffff; }
     .panel-title-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -700,7 +702,7 @@
         chartHelpPercentile: '依過去 N 筆採樣由小到大排序，顯示連線延遲分佈與 P50、P75、P90、P95、P99 標記。',
         percentileNLabel: '樣本數 (N)', sampleUnit: '筆', percentileDataset: '連線延遲 ms',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
-        start: '開始', pause: '暫停', reset: '重設', settingsTitle: '測試設定',
+        start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: '測試設定',
         settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
         activeEndpointLabel: '當前探測端點',
         endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '壅塞模擬下載 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
@@ -766,7 +768,7 @@
         chartHelpPercentile: 'Shows sorted latency distribution of the last N samples with P50, P75, P90, P95, P99 marked.',
         percentileNLabel: 'Samples (N)', sampleUnit: 'pts', percentileDataset: 'Latency ms',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
-        start: 'Start', pause: 'Pause', reset: 'Reset', settingsTitle: 'Test Settings',
+        start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Test Settings',
         settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
         activeEndpointLabel: 'Active Endpoint',
         endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Congestion Download URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
@@ -1533,6 +1535,18 @@
       }
       els.startBtn.setAttribute('aria-pressed', state.running ? 'true' : 'false');
       els.pauseBtn.setAttribute('aria-pressed', state.running ? 'false' : 'true');
+
+      if (state.running) {
+        els.startBtn.classList.remove('primary');
+        els.startBtn.classList.add('running');
+        els.startBtn.textContent = t('monitoring');
+        els.pauseBtn.classList.add('pause-active');
+      } else {
+        els.startBtn.classList.remove('running');
+        els.startBtn.classList.add('primary');
+        els.startBtn.textContent = t('start');
+        els.pauseBtn.classList.remove('pause-active');
+      }
 
       let currentHost = '—';
       try { currentHost = new URL(getActiveProbeUrl()).hostname; } catch {}
