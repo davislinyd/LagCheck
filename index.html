@@ -277,7 +277,48 @@
     .number-wrap { display: grid; grid-template-columns: 1fr 36px; overflow: hidden; }
     .number-wrap input { min-width: 0; border: 0; outline: 0; padding: 0 8px; color: var(--text); background: transparent; font-size: 12px; }
     .number-wrap span { display: grid; place-items: center; color: var(--muted); font-size: 11px; border-left: 1px solid var(--line); background: #f1f5f9; }
-    .toggle-row { min-height: 46px; display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 10px; background: #f8fafc; }
+    .toggle-row {
+      min-height: 46px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 36px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      background: #f8fafc;
+      position: relative;
+      cursor: help;
+    }
+    .toggle-row::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      padding: 6px 10px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
+      white-space: normal;
+      width: max-content;
+      max-width: 240px;
+      border-radius: 6px;
+      box-shadow: 0 8px 16px -3px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 1000;
+      text-align: center;
+    }
+    .toggle-row:hover::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
     .toggle-title { display: block; color: var(--soft); font-size: 12px; line-height: 16px; font-weight: 800; }
     .toggle-help { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .toggle-row input { width: 18px; height: 18px; accent-color: var(--blue); justify-self: end; }
@@ -518,7 +559,7 @@
               <label class="field"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="1" max="20" step="1" /><span data-i18n="timesUnit">次</span></span></label>
               <label class="field"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="10" max="300" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
             </div>
-            <label class="toggle-row" for="stressToggle">
+            <label id="stressToggleRow" class="toggle-row" for="stressToggle">
               <span><span class="toggle-title" data-i18n="stressTitle">壅塞延遲模擬</span><span class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
               <input id="stressToggle" type="checkbox" />
             </label>
@@ -661,8 +702,9 @@
         f1Title: '即時連線探測', f1Desc: '每秒探測一次，支援 P50/P95 百分位圖表與雙端點 Failover 自動切換。',
         f2Title: '抖動與尖峰記錄', f2Desc: '滾動計算網路 Jitter 與 MAD，自動擷取異常脈衝尖峰。',
         f3Title: '失敗／逾時可靠度', f3Desc: '結合 Wilson 信心區間，精準反映真實丟包與 Timeout。',
-        f4Title: '壅塞模擬測試', f4Desc: '並行大流量背景下載，評估網路在負載下的 Bufferbloat 衝擊。',
+        f4Title: '壅塞模擬測試', f4Desc: '並行大流量背景下載，評估網路在負載壓迫下的 Bufferbloat 衝擊（建議情境：視訊會議/上傳大檔卡頓排障、倉庫 PDA 掃碼連線抗壓測試、路由器 QoS 流量管理評估）。',
         f5Title: '分頁省電保護', f5Desc: '切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。',
+        stressToggleTooltip: '模擬大流量下載，檢驗頻寬吃滿時 (如看影片/下載大檔) 網路是否會卡頓',
         gradingHead: '企業評級機制標準 (0 - 100 分)',
         gradingDesc: '評級綜合考量延遲 (35%)、抖動 (25%)、遺失/逾時 (30%) 與尖峰 (10%)，並包含「短板瓶頸封頂機制 (Bottleneck Cap)」，防範嚴重丟包或斷線被優良延遲虛高掩蓋：',
         thGrade: '評級', thScore: '分數', thDesc: '實用品質體驗與建議',
@@ -726,8 +768,9 @@
         f1Title: 'Live Probe', f1Desc: 'Probes every second with P50/P95 percentile chart & dual-endpoint Failover.',
         f2Title: 'Jitter & Spike Logging', f2Desc: 'Calculates rolling Jitter/MAD and logs latency spikes automatically.',
         f3Title: 'Reliability & Loss', f3Desc: 'Applies Wilson score interval to accurately gauge timeouts and loss.',
-        f4Title: 'Congestion Simulation', f4Desc: 'Runs background download streams to measure Bufferbloat impact.',
+        f4Title: 'Congestion Simulation', f4Desc: 'Runs background download streams to measure Bufferbloat impact (Recommended for: video call dropouts, warehouse PDA scanning troubleshooting, testing router QoS throttling).',
         f5Title: 'Background Safeguard', f5Desc: 'Pauses canvas rendering in hidden tabs to save CPU & GPU resources.',
+        stressToggleTooltip: 'Simulates heavy download traffic to check network stability under full bandwidth load.',
         gradingHead: 'Enterprise Grading Scale (0 - 100)',
         gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
         thGrade: 'Grade', thScore: 'Score', thDesc: 'Experience & Recommendations',
@@ -787,7 +830,7 @@
       clearLogBtn: $('clearLogBtn'), activeEndpointBadge: $('activeEndpointBadge'), endpointInput: $('endpointInput'),
       fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
       timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'),
-      stressToggle: $('stressToggle'), copyReportBtn: $('copyReportBtn'), exportCsvBtn: $('exportCsvBtn'),
+      stressToggle: $('stressToggle'), stressToggleRow: $('stressToggleRow'), copyReportBtn: $('copyReportBtn'), exportCsvBtn: $('exportCsvBtn'),
       actionToast: $('actionToast'), eventLog: $('eventLog'), chartTitle: $('chartTitle'), chartHelp: $('chartHelp'),
       modeLiveBtn: $('modeLiveBtn'), modePercentileBtn: $('modePercentileBtn'),
       chartMissing: $('chartMissing'), summaryStrip: document.querySelector('.summary-strip'), latencyChart: $('latencyChart')
@@ -955,6 +998,10 @@
       els.langToggle.textContent = lang === 'zh' ? 'EN' : '中';
       els.langToggle.setAttribute('aria-label', t('langToggleAria'));
       if (els.latencyChart) els.latencyChart.setAttribute('aria-label', t('chartAria'));
+      if (els.stressToggleRow) {
+        els.stressToggleRow.title = t('stressToggleTooltip');
+        els.stressToggleRow.setAttribute('data-tooltip', t('stressToggleTooltip'));
+      }
       setChartMode(state.chartMode, { skipRebuild: false });
       renderLog();
       updateUI({ skipChart: true });
