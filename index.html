@@ -716,7 +716,7 @@
         reportTitle: 'Network Stability Report', period: '期間', endpoint: '端點', grade: '評級',
         current: '目前連線延遲', average: '平均連線延遲', minMax: '最低 / 最高連線延遲', jitter: '抖動',
         loss: '失敗／逾時率', bufferDelta: '壅塞延遲差', recentEvents: '近期事件', noNotableEvents: '沒有記錄到顯著事件。',
-        warmUpNote: '暖機中（不計入評級）',
+
         gradeExcellent: '極佳', gradeGreat: '優秀', gradeGood: '良好', gradeMarginal: '勉強', gradeUnstable: '不穩定', gradeNoData: '尚無資料',
         chartMissing: '圖表函式庫載入失敗，曲線無法顯示。請檢查網路或 CDN 連線後重新整理。',
         metricsAria: '網路指標摘要', langToggleAria: '切換語言', chartAria: '連線延遲與抖動曲線',
@@ -782,7 +782,7 @@
         reportTitle: 'Network Stability Report', period: 'Period', endpoint: 'Endpoint', grade: 'Grade',
         current: 'Current Latency', average: 'Average Latency', minMax: 'Min / Max Latency', jitter: 'Jitter',
         loss: 'Fail / Timeout Rate', bufferDelta: 'Congestion Delta', recentEvents: 'Recent Events', noNotableEvents: 'No notable events recorded.',
-        warmUpNote: 'Warm-up (excluded from grade)',
+
         gradeExcellent: 'Excellent', gradeGreat: 'Great', gradeGood: 'Good', gradeMarginal: 'Marginal', gradeUnstable: 'Unstable', gradeNoData: 'No data',
         chartMissing: 'Chart library failed to load. The live curve is unavailable. Check network/CDN and reload.',
         metricsAria: 'Network metrics summary', langToggleAria: 'Switch language', chartAria: 'Latency and jitter chart',
@@ -1883,7 +1883,7 @@
       }
       try {
         toast(t('generatingScreenshot'));
-        const target = document.querySelector('.app-shell') || document.body;
+        const target = document.body;
         const canvas = await html2canvas(target, {
           scale: 2,
           useCORS: true,
