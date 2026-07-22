@@ -6,7 +6,7 @@
   <meta name="description" content="LagCheck network stability monitor for latency, jitter, fail/timeout rate, and congestion delay." />
   <title>LagCheck Light · Network Stability Monitor</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+WGds8gF4gVF1rQRb55JG51FYE51e7JVTGW8LpBgJQVOygN60x5T7h5vxwg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -1820,6 +1820,7 @@
 
     async function exportScreenshot() {
       if (typeof html2canvas === 'undefined') {
+        toast('截圖元件載入中或不可用，已複製文字報告');
         await copyReport();
         return;
       }
@@ -1829,20 +1830,21 @@
         const canvas = await html2canvas(target, {
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           backgroundColor: '#f7f9fc',
           logging: false
         });
         const image = canvas.toDataURL('image/png');
         const a = document.createElement('a');
         a.href = image;
-        a.download = `LagCheck_Report_${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
+        a.download = `LagCheck_Report_${new Date().toISOString().slice(0, 10)}.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         toast(t('screenshotDone'));
       } catch (e) {
-        console.error('Screenshot failed, falling back to copy report:', e);
-        await copyReport();
+        console.error('Screenshot failed:', e);
+        toast(`截圖失敗: ${e?.message || '未知錯誤'}`);
       }
     }
 
