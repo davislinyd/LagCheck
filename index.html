@@ -505,7 +505,7 @@
         <div>
           <div class="title-row">
             <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.5-rc2</span>
+            <span class="version" id="appVersion" title="Version">v1.0.5-rc3</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合遊戲、會議、遠端桌面與直播排障。</p>
           <div class="client-info">
@@ -823,7 +823,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.5-rc2';
+    const APP_VERSION = 'v1.0.5-rc3';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -1257,12 +1257,12 @@
         };
       }
 
-      // 業界級短板封頂對數模型 (Bottleneck-Capped Scale)
-      // 1. 寬容區間對數減分 (180ms/2.5% loss 內保持高分)
-      const latencyScore = 0.5 * scoreRange(stats.p50, 180, 480) + 0.5 * scoreRange(stats.p95, 300, 750);
-      const jitterScore = 0.6 * scoreRange(stats.jitter, 40, 130) + 0.4 * scoreRange(stats.latencyMad, 30, 100);
-      const lossScore = scoreRange(stats.wilsonLoss, 2.5, 12);
-      const spikeScore = scoreRange(stats.spikeRate, 8, 32);
+      // 業界級短板封頂對數模型 (Bottleneck-Capped Scale - 放寬版)
+      // 1. 寬容區間對數減分 (220ms/4.0% loss 內保持高分)
+      const latencyScore = 0.5 * scoreRange(stats.p50, 220, 600) + 0.5 * scoreRange(stats.p95, 400, 900);
+      const jitterScore = 0.6 * scoreRange(stats.jitter, 60, 180) + 0.4 * scoreRange(stats.latencyMad, 45, 140);
+      const lossScore = scoreRange(stats.wilsonLoss, 4.0, 16.0);
+      const spikeScore = scoreRange(stats.spikeRate, 12.0, 40.0);
       const bufferDelta = state.underLoadAvg != null && state.idleBaseline != null
         ? Math.max(0, state.underLoadAvg - state.idleBaseline) : null;
       const bufferScore = bufferDelta == null ? null : scoreRange(bufferDelta, 45, 220);
@@ -1275,7 +1275,7 @@
         + lossScore * weights.loss + spikeScore * weights.spike + (bufferScore || 0) * (weights.buffer || 0);
 
       // 2. 短板瓶頸封頂防護：防範斷線 (LossScore 0分) 被優良延遲拉高總分的木桶效應
-      const bottleneckCap = Math.min(lossScore + 18, latencyScore + 18);
+      const bottleneckCap = Math.min(lossScore + 25, latencyScore + 25);
       let score = Math.min(rawWeightedScore, bottleneckCap);
 
       const sampleCap = stats.sentRecent < 10 ? 88 : stats.sentRecent < 30 ? 94 : 100;
