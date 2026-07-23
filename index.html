@@ -436,7 +436,38 @@
     .side-panel:has(.log-card.collapsed) { grid-template-rows: minmax(0, 1fr) auto !important; }
     .log-title { margin: 0; font-size: 14px; line-height: 17px; font-weight: 820; }
     .log-subtitle { margin: 1px 0 0; color: var(--muted); font-size: 10px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .clear-btn { height: 28px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: #fff; font-size: 10px; font-weight: 780; }
+    .clear-btn {
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--muted);
+      background: #ffffff;
+      font-size: 11px;
+      font-weight: 780;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+    .clear-btn:hover {
+      color: var(--blue);
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+    .clear-btn:active {
+      transform: scale(0.95);
+      background: #dbeafe;
+    }
+    .clear-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      pointer-events: none;
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      color: #94a3b8;
+    }
     .event-log { min-height: 0; overflow: auto; padding: 10px 12px; display: grid; align-content: start; gap: 7px; }
     .event-log::-webkit-scrollbar { width: 8px; }
     .event-log::-webkit-scrollbar-thumb { border-radius: 99px; background: #cbd5e1; }
@@ -587,7 +618,7 @@
         <div>
           <div class="title-row">
             <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.10</span>
+            <span class="version" id="appVersion" title="Version">v1.0.11</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合辦公室作業與倉庫物流診斷。</p>
           <div class="client-info">
@@ -656,13 +687,14 @@
 
       <aside class="side-panel">
         <section class="settings-card">
-          <div class="panel-head" style="margin-bottom:12px; grid-template-columns:1fr;">
-            <div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                <h2 class="panel-title" data-i18n="settingsTitle">測試設定</h2>
-                <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff;" title="Active Probe Target">Active: —</span>
-              </div>
-              <p class="panel-desc" data-i18n="settingsHelp">調整端點、採樣間隔與逾時門檻，下一次採樣即生效。</p>
+          <div class="panel-head" style="margin-bottom:12px; display:flex; flex-direction:column; gap:6px; width:100%;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
+              <h2 class="panel-title" data-i18n="settingsTitle">測試設定</h2>
+              <button id="resetSettingsBtn" class="clear-btn" type="button" data-i18n="resetDefaults">還原預設設定</button>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
+              <p class="panel-desc" data-i18n="settingsHelp" style="margin:0;">調整端點、採樣間隔與逾時門檻，下一次採樣即生效。</p>
+              <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff; flex-shrink:0;" title="Active Probe Target">Active: —</span>
             </div>
           </div>
           <div class="form-grid">
@@ -798,7 +830,7 @@
         settingsBoundaryDesc: '💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。',
         autoStopLabel: '自動停止', autoStop5: '5 分鐘', autoStop10: '10 分鐘', autoStop30: '30 分鐘', autoStop60: '60 分鐘', autoStopNever: '無限制 (永遠執行)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
-        start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: '測試設定',
+        start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: '測試設定', resetDefaults: '還原預設設定',
         settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
         activeEndpointLabel: '當前探測端點',
         endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '下載測試檔 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
@@ -808,7 +840,7 @@
         live: '即時監測', paused: '已暫停', offline: '離線', stress: '下載測試中', idle: '閒置', underLoad: '下載中',
         sentShort: '次', noEvents: '暫無事件。開始測試後，尖峰與逾時會自動記錄。',
         latencyDataset: '連線延遲 ms', jitterDataset: '抖動 ms', tooltipTimeout: '逾時', axisMs: '毫秒',
-        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。', generatingScreenshot: '正在產生畫面截圖...', screenshotDone: '畫面截圖已下載並複製到剪貼本！',
+        copied: 'Markdown 報告已複製。', csvDone: 'CSV 已產生。', generatingScreenshot: '正在產生畫面截圖...', screenshotDone: '畫面截圖已下載並複製到剪貼本！', toastResetDefaults: '已還原預設測試設定與 URL',
         log_monitoringStarted: '監測已開始。',
         log_monitoringPaused: '監測已暫停。',
         log_probeError: '探測 {type}: {error} ({timeout}ms 門檻)',
@@ -878,7 +910,7 @@
         settingsBoundaryDesc: '💡 Input Limits: Interval (200~2000ms), Timeout (1000~5000ms), Failover (3~10 fails), Sample Size N (30~500 pts).',
         autoStopLabel: 'Auto-Stop', autoStop5: '5 Min', autoStop10: '10 Min', autoStop30: '30 Min', autoStop60: '60 Min', autoStopNever: 'Unlimited (Continuous)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
-        start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Test Settings',
+        start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Test Settings', resetDefaults: 'Reset Defaults',
         settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
         activeEndpointLabel: 'Active Endpoint',
         endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Download Test URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
@@ -888,7 +920,7 @@
         live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Download Test', idle: 'Idle', underLoad: 'Load',
         sentShort: 'sent', noEvents: 'No events yet. Spikes and timeouts will appear here after testing starts.',
         latencyDataset: 'Latency ms', jitterDataset: 'Jitter ms', tooltipTimeout: 'timeout', axisMs: 'Milliseconds',
-        copied: 'Markdown report copied.', csvDone: 'CSV export generated.', generatingScreenshot: 'Generating screenshot PNG...', screenshotDone: 'Screenshot downloaded & copied to clipboard!',
+        copied: 'Markdown report copied.', csvDone: 'CSV export generated.', generatingScreenshot: 'Generating screenshot PNG...', screenshotDone: 'Screenshot downloaded & copied to clipboard!', toastResetDefaults: 'Restored default settings and URLs',
         log_monitoringStarted: 'Monitoring started.',
         log_monitoringPaused: 'Monitoring paused.',
         log_probeError: 'Probe {type}: {error} ({timeout}ms threshold)',
@@ -942,7 +974,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.10';
+    const APP_VERSION = 'v1.0.11';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -1029,7 +1061,7 @@
       gradeBadge: $('gradeBadge'), gradeText: $('gradeText'), currentLatency: $('currentLatency'), avgLatency: $('avgLatency'), minLatency: $('minLatency'),
       maxLatency: $('maxLatency'), latencyTrend: $('latencyTrend'), jitter: $('jitter'), lossRate: $('lossRate'),
       requestCount: $('requestCount'), failCount: $('failCount'), maxSpike: $('maxSpike'), stressState: $('stressState'),
-      bufferbloatDelta: $('bufferbloatDelta'), startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'),
+      bufferbloatDelta: $('bufferbloatDelta'), startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'), resetSettingsBtn: $('resetSettingsBtn'),
       clearLogBtn: $('clearLogBtn'), logHead: $('logHead'), toggleLogCollapseBtn: $('toggleLogCollapseBtn'), activeEndpointBadge: $('activeEndpointBadge'),
       clientIpChip: $('clientIpChip'), clientNodeChip: $('clientNodeChip'), clientLocChip: $('clientLocChip'),
       fieldInterval: $('fieldInterval'), fieldTimeout: $('fieldTimeout'), fieldFailover: $('fieldFailover'), fieldPercentileN: $('fieldPercentileN'), fieldAutoStop: $('fieldAutoStop'),
@@ -1290,6 +1322,25 @@
       els.failoverThresholdInput.value = state.settings.failoverThreshold;
       els.percentileNInput.value = state.settings.percentileN;
       persist();
+    }
+
+    function resetSettingsToDefault() {
+      if (state.running) return;
+      state.settings = { ...DEFAULTS };
+      state.activeEndpointIndex = 0;
+      state.consecutiveFailures = 0;
+      els.endpointInput.value = state.settings.endpoint;
+      els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
+      els.downloadInput.value = state.settings.downloadUrl;
+      els.intervalInput.value = state.settings.intervalMs;
+      els.timeoutInput.value = state.settings.timeoutMs;
+      els.failoverThresholdInput.value = state.settings.failoverThreshold;
+      els.percentileNInput.value = state.settings.percentileN;
+      if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
+      persist();
+      updateUI({ skipChart: true });
+      if (state.chartMode === 'percentile') rebuildPercentileChart();
+      showToast(t('toastResetDefaults'));
     }
 
     function localeTag() { return state.lang === 'zh' ? 'zh-TW' : 'en-US'; }
@@ -1763,7 +1814,7 @@
       const inputsToToggle = [
         els.endpointInput, els.fallbackEndpointInput, els.downloadInput,
         els.intervalInput, els.timeoutInput, els.failoverThresholdInput,
-        els.percentileNInput, els.autoStopSelect, els.stressToggle
+        els.percentileNInput, els.autoStopSelect, els.stressToggle, els.resetSettingsBtn
       ];
       inputsToToggle.filter(Boolean).forEach((el) => {
         el.disabled = state.running;
@@ -2257,6 +2308,7 @@
     els.startBtn.addEventListener('click', start);
     els.pauseBtn.addEventListener('click', pause);
     els.resetBtn.addEventListener('click', reset);
+    if (els.resetSettingsBtn) els.resetSettingsBtn.addEventListener('click', resetSettingsToDefault);
     els.clearLogBtn.addEventListener('click', () => { state.eventLog = []; renderLog(); });
     function toggleLogCollapse() {
       const logCard = els.eventLog ? els.eventLog.closest('.log-card') : null;
