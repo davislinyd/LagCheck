@@ -1158,7 +1158,7 @@
       const params = new URLSearchParams(window.location.search);
       if (!params.toString()) return;
 
-      const ep = params.get('endpoint');
+      const ep = params.get('endpoint') || params.get('target') || params.get('host') || params.get('url') || params.get('domain');
       const fep = params.get('fallback') || params.get('fallbackEndpoint');
       const dl = params.get('download') || params.get('downloadUrl');
       const inv = params.get('interval');
@@ -1380,7 +1380,12 @@
 
     function normalizeUrl(raw, fallback) {
       try {
-        const url = new URL(String(raw || '').trim());
+        let str = String(raw || '').trim();
+        if (!str) return fallback;
+        if (!/^https?:\/\//i.test(str)) {
+          str = `https://${str}`;
+        }
+        const url = new URL(str);
         if (!['http:', 'https:'].includes(url.protocol)) throw new Error('unsupported protocol');
         return url.toString();
       } catch {
