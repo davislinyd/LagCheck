@@ -761,9 +761,9 @@
           <ul class="guide-list" style="font-size:0.85rem;">
             <li><strong data-i18n="urlTargetTitle">目標 URL 調整</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?endpoint=...</code> (主要探測)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?fallback=...</code> (備用端點)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?download=...</code> (下載測試)</li>
             <li><strong data-i18n="urlControlTitle">效能與樣本控制</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?interval=200</code> (間隔ms)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?timeout=1500</code> (逾時ms)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?samples=50</code> (樣本數)</li>
-            <li><strong data-i18n="urlAutoTitle">自動啟動與導出</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?autostart=1</code> (載入自動開始)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?export=json</code> (完成自動下載JSON)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?webhook=...</code> (POST 回傳)</li>
+            <li><strong data-i18n="urlAutoTitle">自動啟動與導出</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?autostart=1</code> (載入自動開始)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?export=json,png|all</code> (同時下載JSON/圖片)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?webhook=...</code> (POST 回傳)</li>
             <li><strong data-i18n="urlExampleTitle">實用範例 (Google 探測)</strong>：<br>
-              <code style="background:#f1f5f9; padding:3px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0; word-break:break-all;" data-i18n="urlExampleText">?endpoint=https%3A%2F%2Fwww.google.com&autostart=1&samples=30&export=json</code>
+              <code style="background:#f1f5f9; padding:3px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0; word-break:break-all;" data-i18n="urlExampleText">?endpoint=https%3A%2F%2Fwww.google.com&autostart=1&samples=30&export=json,png</code>
             </li>
           </ul>
         </div>
@@ -1088,7 +1088,7 @@
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
       underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
       settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined',
-      autoStartFromUrl: false, autoStressFromUrl: false, autoExportFormat: null, autoWebhookUrl: null, autoTriggered: false
+      autoStartFromUrl: false, autoStressFromUrl: false, autoExportFormats: [], autoWebhookUrl: null, autoTriggered: false
     };
 
     const $ = (id) => document.getElementById(id);
@@ -1189,7 +1189,9 @@
       if (stressVal === '1' || stressVal === 'true') state.autoStressFromUrl = true;
 
       const exp = params.get('export');
-      if (exp === 'json' || exp === 'csv') state.autoExportFormat = exp;
+      if (exp) {
+        state.autoExportFormats = exp.toLowerCase().split(',').map((s) => s.trim());
+      }
 
       const wh = params.get('webhook');
       if (wh) state.autoWebhookUrl = normalizeUrl(wh, null);
@@ -2306,10 +2308,17 @@
         samples: state.samples
       };
 
-      if (state.autoExportFormat === 'json') {
+      const formats = state.autoExportFormats || [];
+      const isAll = formats.includes('all');
+
+      if (isAll || formats.includes('json')) {
         exportJson(payload);
-      } else if (state.autoExportFormat === 'csv') {
+      }
+      if (isAll || formats.includes('csv')) {
         exportCsv();
+      }
+      if (isAll || formats.includes('png') || formats.includes('screenshot')) {
+        setTimeout(() => { exportScreenshot(); }, 200);
       }
 
       if (state.autoWebhookUrl) {
