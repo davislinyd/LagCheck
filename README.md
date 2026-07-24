@@ -76,6 +76,17 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1
 
 ---
 
+### 指標語意（重要）
+
+| 畫面名稱 | 實際意義 |
+|----------|----------|
+| 連線延遲 | 應用層 `fetch` 往返時間（含 DNS／TLS 影響；非 ICMP RTT） |
+| 失敗／逾時率 | Probe 逾時或連線失敗比例；**不是** L3 packet loss（`no-cors` 無法讀 HTTP status） |
+| 抖動 | 相鄰成功樣本延遲差的滾動統計 |
+| 壅塞延遲差 | 負載中平均延遲 − 閒置 baseline |
+
+---
+
 ### 預設參數（v1.0.12）
 
 | 參數 | 預設 | 合法限制範圍 | URL 簡寫參數別名 |
@@ -104,6 +115,7 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1
 
 ### 🌐 Live Online Access (GitHub Pages)
 
+Dual-track hosting and release supported on GitHub Pages:
 - 👉 **Production**: [https://davislinyd.github.io/LagCheck/](https://davislinyd.github.io/LagCheck/)
 - 🧪 **Staging / Beta**: [https://davislinyd.github.io/LagCheck/test.html](https://davislinyd.github.io/LagCheck/test.html)
 
@@ -111,24 +123,94 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1
 
 ### Quick Start
 
-No build step required. Open `index.html` directly in your browser or serve locally:
+No build step required. Open directly in your browser:
+
+```text
+index.html
+```
+
+Or serve locally using any static HTTP server:
 
 ```bash
 python3 -m http.server 8080
 # Open http://localhost:8080/index.html
 ```
 
+| File | Description |
+|------|-------------|
+| `index.html` | Single-file application for Production (v1.0.12 with URL Automation Engine, Reset Defaults, bottleneck-capped scale, and energy-saving safeguards) |
+| `test.html` | Independent Staging application (for online Candidate feature verification) |
+| `lagcheck_auto.py` | Python Playwright headless automation script for automated probing & JSON/PNG report downloads |
+
+*Dependencies*: Chart.js 4.4.7 via CDN (with SRI). Even if the CDN is temporarily unreachable, latency probing and data exports remain fully functional (only line charts are hidden).
+
 ---
 
 ### Key Features (v1.0.12)
 
-- **Real-Time Latency Probing**: Probes every 500ms with failover fallback.
-- **Reset to Defaults**: Dedicated "Reset Defaults" button to clear local storage overrides.
-- **⚡ URL Automation Engine**: Supports zero-touch auto start (`autostart=1`), short host parameters (`host=www.google.com`), multi-format export (`export=json,png`), and auto Webhook POSTing.
-- **Jitter & Spike Tracking**: Rolling Jitter / MAD calculation and spike logging.
-- **Network Egress Info (IP / Node / Loc)**: Displays public IP, Cloudflare edge node (`TPE`), and country (`TW`).
-- **Download Speed Simulation**: Background concurrent downloads for Bufferbloat analysis.
-- **Background Energy Safeguard**: Automatically pauses rendering in hidden browser tabs.
+- **Real-Time Latency Probing**: Default 500ms interval (Primary endpoint Cloudflare `cdn-cgi/trace`, Fallback endpoint AWS `checkip.amazonaws.com`).
+- **Automated Failover Probing**: Automatically switches active probe endpoint upon consecutive failure threshold with instant event logging.
+- **Reset to Defaults**: Dedicated "Reset Defaults" button in settings panel to restore default configurations and Failover status with a single click.
+- **⚡ URL Automation Engine**:
+  - **Smart Protocol Auto-Prefixing**: Automatically prefixes `https://` when passing `host=www.google.com` or `target=google.com` (no `%3A%2F%2F` encoding required).
+  - **Zero-Touch Automated Testing**: Supports `autostart=1`, `samples=30`, `interval=200`, and `stress=1`.
+  - **Multi-Format Auto Export**: Supports `export=json,png` or `export=all` to automatically download JSON data files and high-res PNG screenshots upon completion.
+  - **Webhook Integration**: Supports `webhook=https://...` to automatically HTTP POST JSON diagnostic reports to backend servers.
+- **Jitter & Spike Tracking**: Rolling calculation of Jitter and MAD (Median Absolute Deviation), with automatic spike logging.
+- **Reliability & Timeout Rate**: Applies Wilson score confidence interval for accurate loss estimation under small sample sizes.
+- **Network Egress Info (IP / Node / Loc)**: Parses client public IP, Cloudflare edge data center node (`TPE` = Taipei), and country location (`TW`).
+- **Simulate Download Speed**: Concurrent background downloads to evaluate bandwidth throughput and Bufferbloat latency impact under heavy load.
+- **Background Energy Safeguard**: Automatically pauses Canvas rendering in hidden browser tabs (Page Visibility API) to save GPU/CPU resources.
+- **Dynamic I18N**: Real-time switching between Traditional Chinese and English.
+
+---
+
+### ⚡ URL Automation Usage Examples
+
+#### 1. Concise Link (One-click Google Probe + Auto JSON & PNG Download):
+```text
+https://davislinyd.github.io/LagCheck/?host=www.google.com&autostart=1&samples=30&export=json,png
+```
+
+#### 2. High-Frequency Stress Test + Automated Webhook POST:
+```text
+https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1&autostart=1&samples=50&webhook=https%3A%2F%2Fapi.mycompany.com%2Freport
+```
+
+---
+
+### Metric Semantics & Definitions (Important)
+
+| UI Display | Technical Meaning & Definition |
+|------------|--------------------------------|
+| Connection Latency | Application-layer `fetch` round-trip time (RTT), including DNS lookup & TLS handshake (Not Layer 3 ICMP ping). |
+| Fail / Timeout Rate | Percentage of failed/timed-out probes; **Not** Layer 3 IP packet loss (`no-cors` mode cannot read HTTP status). |
+| Network Jitter | Rolling statistics of latency variation between consecutive successful samples. |
+| Bufferbloat Delta | Average latency under load − Idle baseline latency. |
+
+---
+
+### Default Configuration (v1.0.12)
+
+| Setting | Default | Input Range | URL Short Parameter Aliases |
+|---------|---------|-------------|-----------------------------|
+| Primary probe endpoint | `https://www.cloudflare.com/cdn-cgi/trace` | URL | `endpoint`, `host`, `target`, `url`, `domain` |
+| Fallback probe endpoint | `https://checkip.amazonaws.com` | URL | `fallback`, `fallbackEndpoint` |
+| Failover threshold | 5 fails | 3 – 10 fails | `failover`, `failoverThreshold` |
+| Download test URL | `https://speed.cloudflare.com/__down?bytes=5000000` | URL | `download`, `downloadUrl` |
+| Sample interval | 500 ms | 200 – 2000 ms | `interval` |
+| Timeout threshold | 2000 ms | 1000 – 5000 ms | `timeout` |
+| Sample size N | 200 pts | 30 – 500 pts | `samples`, `percentileN` |
+| Auto-Start / Auto-Test | Disabled | `0` or `1` | `autostart` |
+| Auto-Export formats | None | `json`, `csv`, `png`, `all`, `json,png` | `export` |
+| Webhook Target URL | None | URL | `webhook` |
+
+---
+
+### Privacy & Security
+
+- **100% Client-Side Only**: Zero backend dependency; configurations stored locally in `localStorage` (`lagcheck-light-v1`).
+- **Privacy Assurance**: No private service names or internal domain leaks; default endpoints use public authoritative infrastructure (Cloudflare / AWS / Google).
 
 ---
 
