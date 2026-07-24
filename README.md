@@ -4,11 +4,11 @@ Browser-based real-time network stability diagnostic tool. Measures **connection
 
 目前版本 / Version: **v1.0.12**
 
-[ 繁體中文 ](#-繁體中文) | [ English ](#-english)
+[ 中文 ](#-中文) | [ English ](#-english)
 
 ---
 
-## 🌐 繁體中文
+## 🌐 中文
 
 ### 🌐 線上直接使用 (GitHub Pages)
 
