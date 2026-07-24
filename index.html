@@ -756,14 +756,29 @@
           <div style="margin-top:10px; padding:8px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#1e40af; font-size:12px; font-weight:600;" data-i18n="settingsBoundaryDesc">💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。</div>
         </div>
         <div class="guide-section">
-          <h3><span style="color:var(--blue);">⚡</span> <span data-i18n="urlAutomationHead">URL 參數自動化使用指南</span></h3>
-          <p style="margin:0 0 10px 0; color:#64748b; font-size:0.85rem;" data-i18n="urlAutomationDesc">支援透過 URL 網址參數實現免手動點擊連線測試、帶入自訂目標與自動導出 JSON/Webhook 報告：</p>
+          <h3><span style="color:var(--blue);">⚡</span> <span data-i18n="urlAutomationHead">URL 參數自動化使用指南 (完整支援清單)</span></h3>
+          <p style="margin:0 0 10px 0; color:#64748b; font-size:0.85rem;" data-i18n="urlAutomationDesc">支援透過 URL 網址參數實現免手動點擊連線測試、帶入自訂目標與自動導出 JSON/PNG/Webhook 報告：</p>
           <ul class="guide-list" style="font-size:0.85rem;">
-            <li><strong data-i18n="urlTargetTitle">目標 URL 調整</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?endpoint=...</code> (主要探測)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?fallback=...</code> (備用端點)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?download=...</code> (下載測試)</li>
-            <li><strong data-i18n="urlControlTitle">效能與樣本控制</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?interval=200</code> (間隔ms)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?timeout=1500</code> (逾時ms)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?samples=50</code> (樣本數)</li>
-            <li><strong data-i18n="urlAutoTitle">自動啟動與導出</strong>：<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?autostart=1</code> (載入自動開始)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?export=json,png|all</code> (同時下載JSON/圖片)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">?webhook=...</code> (POST 回傳)</li>
+            <li><strong data-i18n="urlTargetTitle">目標 URL 調整 (自動補全 https://)</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">host=...</code> / <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">target=...</code> / <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">endpoint=...</code> (主要探測端點)<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">fallback=...</code> (備用探測端點)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">download=...</code> (下載測試檔)
+            </li>
+            <li><strong data-i18n="urlControlTitle">效能與採樣控制</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">interval=200</code> (採樣間隔ms, 200~2000)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">timeout=1500</code> (逾時門檻ms, 1000~5000)<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">samples=50</code> (樣本數 N, 30~500)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">failover=5</code> (失敗切換門檻, 3~10)<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">autostop=10</code> (自動停止分鐘數, 0為不停止)
+            </li>
+            <li><strong data-i18n="urlAutoTitle">自動啟動與抗壓測試</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">autostart=1</code> (開啟自動開始)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">stress=1</code> (自動啟用下載抗壓測試)
+            </li>
+            <li><strong data-i18n="urlPrefsTitle">介面與語言偏好</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">lang=zh|en</code> (切換語言)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">mode=live|percentile</code> (切換圖表模式)
+            </li>
+            <li><strong data-i18n="urlExportTitle">自動導出與 Webhook 回傳</strong>：<br>
+              <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">export=json,png|all</code> (自動下載JSON/PNG/CSV)、<code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">webhook=https://...</code> (POST 回傳)
+            </li>
             <li><strong data-i18n="urlExampleTitle">實用範例 (Google 探測)</strong>：<br>
-              <code style="background:#f1f5f9; padding:3px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0; word-break:break-all;" data-i18n="urlExampleText">?endpoint=https%3A%2F%2Fwww.google.com&autostart=1&samples=30&export=json,png</code>
+              <code style="background:#f1f5f9; padding:3px 6px; border-radius:4px; font-size:0.8rem; display:block; margin:4px 0; word-break:break-all;" data-i18n="urlExampleText">?host=www.google.com&autostart=1&samples=30&export=json,png</code>
             </li>
           </ul>
         </div>
@@ -884,14 +899,16 @@
         f5Title: '分頁省電保護', f5Desc: '切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。',
         f6Title: '網路出口資訊 (IP / Node / Loc)', f6Desc: '自動解析探測連線之對外 IP、Cloudflare 資料中心代碼 (colo，例 TPE 台北) 與地理位置 (loc)，可即時確認連線是否在地處理、有無跨國繞路。',
         f7Title: '探測延遲組成與運作機制', f7Desc: '採用 no-cors 跨域 fetch 測量完整 RTT 網路來回時間。HTTPS 延遲包含「DNS 解析 + TCP 握手 + TLS 加密握手 + HTTP 傳輸」，反應真實連線體驗。',
-        f8Title: 'URL 參數自動化引擎 (URL Automation)', f8Desc: '支援透過 URL 參數 (如 ?endpoint=...&autostart=1&samples=50&webhook=...) 實現免手動點擊自動測試、自動回傳 JSON 與導出報告。',
-        urlAutomationHead: '⚡ URL 參數自動化使用指南',
-        urlAutomationDesc: '支援透過 URL 網址參數實現免手動點擊連線測試、帶入自訂目標與自動導出 JSON/Webhook 報告：',
-        urlTargetTitle: '目標 URL 調整',
-        urlControlTitle: '效能與樣本控制',
-        urlAutoTitle: '自動啟動與導出',
+        f8Title: 'URL 參數自動化引擎 (URL Automation)', f8Desc: '支援透過 URL 參數 (如 ?host=...&autostart=1&samples=50&export=json,png) 實現免手動點擊自動測試、自動回傳與導出報告。',
+        urlAutomationHead: '⚡ URL 參數自動化使用指南 (完整支援清單)',
+        urlAutomationDesc: '支援透過 URL 網址參數實現免手動點擊連線測試、帶入自訂目標與自動導出 JSON/PNG/Webhook 報告：',
+        urlTargetTitle: '目標 URL 調整 (自動補全 https://)',
+        urlControlTitle: '效能與採樣控制',
+        urlAutoTitle: '自動啟動與抗壓測試',
+        urlPrefsTitle: '介面與語言偏好',
+        urlExportTitle: '自動導出與 Webhook 回傳',
         urlExampleTitle: '實用範例 (Google 探測)',
-        urlExampleText: '?endpoint=https%3A%2F%2Fwww.google.com&autostart=1&samples=30&export=json',
+        urlExampleText: '?host=www.google.com&autostart=1&samples=30&export=json,png',
         toastWebhookSent: '已完成自動 Webhook 數據回傳',
         toastWebhookFailed: 'Webhook 數據回傳失敗 (請檢查 CORS 或網路)',
         exportJsonDone: 'JSON 報告已下載。',
