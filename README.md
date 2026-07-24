@@ -111,6 +111,13 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1
 
 ---
 
+### 聯絡與反饋 (Contact & Support)
+
+- **Maintainer**: Davis Lin
+- **Email**: [davislinyd@gmail.com](mailto:davislinyd@gmail.com)
+
+---
+
 ## 🌐 English
 
 ### 🌐 Live Online Access (GitHub Pages)
@@ -217,3 +224,10 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1
 ### License & Attribution
 
 Project code is subject to maintainer declarations. Third-party dependency: Chart.js (MIT License via CDN).
+
+---
+
+### Contact & Support
+
+- **Maintainer**: Davis Lin
+- **Email**: [davislinyd@gmail.com](mailto:davislinyd@gmail.com)
