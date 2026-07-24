@@ -618,7 +618,7 @@
         <div>
           <div class="title-row">
             <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.12-rc</span>
+            <span class="version" id="appVersion" title="Version">v1.0.11</span>
           </div>
           <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合辦公室作業與倉庫物流診斷。</p>
           <div class="client-info">
@@ -751,7 +751,6 @@
             <li><strong data-i18n="f5Title">分頁省電保護</strong>：<span data-i18n="f5Desc">切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。</span></li>
             <li><strong data-i18n="f6Title">網路出口資訊 (IP / Node / Loc)</strong>：<span data-i18n="f6Desc">自動解析探測連線之對外 IP、Cloudflare 資料中心代碼 (colo，例 TPE 台北) 與地理位置 (loc)，可即時確認連線是否在地處理、有無跨國繞路。</span></li>
             <li><strong data-i18n="f7Title">探測延遲組成與運作機制</strong>：<span data-i18n="f7Desc">採用 no-cors 跨域 fetch 測量完整 RTT 網路來回時間。HTTPS 延遲包含「DNS 解析 + TCP 握手 + TLS 加密握手 + HTTP 傳輸」，反應真實連線體驗。</span></li>
-            <li><strong data-i18n="f8Title">URL 參數自動化引擎 (URL Automation)</strong>：<span data-i18n="f8Desc">支援透過 URL 參數 (如 ?endpoint=...&autostart=1&samples=50&webhook=...) 實現免手動點擊自動測試、自動回傳 JSON 與導出報告。</span></li>
           </ul>
           <div style="margin-top:10px; padding:8px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#1e40af; font-size:12px; font-weight:600;" data-i18n="settingsBoundaryDesc">💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。</div>
         </div>
@@ -872,10 +871,6 @@
         f5Title: '分頁省電保護', f5Desc: '切換至背景分頁時自動暫停繪製，防止 GPU/CPU 資源浪費。',
         f6Title: '網路出口資訊 (IP / Node / Loc)', f6Desc: '自動解析探測連線之對外 IP、Cloudflare 資料中心代碼 (colo，例 TPE 台北) 與地理位置 (loc)，可即時確認連線是否在地處理、有無跨國繞路。',
         f7Title: '探測延遲組成與運作機制', f7Desc: '採用 no-cors 跨域 fetch 測量完整 RTT 網路來回時間。HTTPS 延遲包含「DNS 解析 + TCP 握手 + TLS 加密握手 + HTTP 傳輸」，反應真實連線體驗。',
-        f8Title: 'URL 參數自動化引擎 (URL Automation)', f8Desc: '支援透過 URL 參數 (如 ?endpoint=...&autostart=1&samples=50&webhook=...) 實現免手動點擊自動測試、自動回傳 JSON 與導出報告。',
-        toastWebhookSent: '已完成自動 Webhook 數據回傳',
-        toastWebhookFailed: 'Webhook 數據回傳失敗 (請檢查 CORS 或網路)',
-        exportJsonDone: 'JSON 報告已下載。',
         ipTooltip: '您的對外連線出口 IP 地址',
         coloTooltip: 'CDN 邊緣伺服器節點代碼 (例: TPE = 台北)',
         locTooltip: '網路連線出口國家/地區 (例: TW = 台灣)',
@@ -957,10 +952,6 @@
         f5Title: 'Background Safeguard', f5Desc: 'Pauses canvas rendering in hidden tabs to save CPU & GPU resources.',
         f6Title: 'Network Egress Info (IP / Node / Loc)', f6Desc: 'Parses client public IP, Cloudflare edge node (colo, e.g. TPE = Taipei), and country location (loc) to verify local routing.',
         f7Title: 'Probe Latency Composition & Mechanism', f7Desc: 'Uses no-cors fetch to measure full RTT round-trip time. HTTPS latency includes "DNS Lookup + TCP Handshake + TLS Encryption Handshake + HTTP Transport" to reflect true connection experience.',
-        f8Title: 'URL Automation Engine', f8Desc: 'Supports URL parameters (e.g. ?endpoint=...&autostart=1&samples=50&webhook=...) for zero-touch auto testing, webhook POST, and report export.',
-        toastWebhookSent: 'Webhook report sent successfully',
-        toastWebhookFailed: 'Failed to send Webhook report (Check CORS/network)',
-        exportJsonDone: 'JSON report downloaded.',
         ipTooltip: 'Your Public Egress IP Address',
         coloTooltip: 'CDN Edge Datacenter Node (e.g., TPE = Taipei)',
         locTooltip: 'Client Egress Country/Region (e.g., TW = Taiwan)',
@@ -986,7 +977,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.12-rc';
+    const APP_VERSION = 'v1.0.11';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -1061,8 +1052,7 @@
       netTraceInfo: { ip: '—', colo: '—', loc: '—' },
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
       underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
-      settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined',
-      autoStartFromUrl: false, autoStressFromUrl: false, autoExportFormat: null, autoWebhookUrl: null, autoTriggered: false
+      settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined'
     };
 
     const $ = (id) => document.getElementById(id);
@@ -1128,47 +1118,6 @@
       state.settings.autoStopMin = clampNumber(saved.autoStopMin, 0, 1440, DEFAULTS.autoStopMin);
     }
 
-    function applyUrlQueryParams() {
-      const params = new URLSearchParams(window.location.search);
-      if (!params.toString()) return;
-
-      const ep = params.get('endpoint');
-      const fep = params.get('fallback') || params.get('fallbackEndpoint');
-      const dl = params.get('download') || params.get('downloadUrl');
-      const inv = params.get('interval');
-      const to = params.get('timeout');
-      const fo = params.get('failover') || params.get('failoverThreshold');
-      const sp = params.get('samples') || params.get('percentileN');
-      const as = params.get('autostop') || params.get('autoStopMin');
-
-      if (ep) state.settings.endpoint = normalizeUrl(ep, state.settings.endpoint);
-      if (fep) state.settings.fallbackEndpoint = normalizeUrl(fep, state.settings.fallbackEndpoint);
-      if (dl) state.settings.downloadUrl = normalizeUrl(dl, state.settings.downloadUrl);
-      if (inv) state.settings.intervalMs = clampNumber(inv, 200, 2000, state.settings.intervalMs);
-      if (to) state.settings.timeoutMs = clampNumber(to, 1000, 5000, state.settings.timeoutMs);
-      if (fo) state.settings.failoverThreshold = clampNumber(fo, 3, 10, state.settings.failoverThreshold);
-      if (sp) state.settings.percentileN = clampNumber(sp, 30, 500, state.settings.percentileN);
-      if (as) state.settings.autoStopMin = clampNumber(as, 0, 1440, state.settings.autoStopMin);
-
-      const lang = params.get('lang');
-      if (lang === 'zh' || lang === 'en') state.lang = lang;
-
-      const mode = params.get('mode');
-      if (mode === 'live' || mode === 'percentile') state.chartMode = mode;
-
-      const autoStartVal = params.get('autostart');
-      if (autoStartVal === '1' || autoStartVal === 'true') state.autoStartFromUrl = true;
-
-      const stressVal = params.get('stress');
-      if (stressVal === '1' || stressVal === 'true') state.autoStressFromUrl = true;
-
-      const exp = params.get('export');
-      if (exp === 'json' || exp === 'csv') state.autoExportFormat = exp;
-
-      const wh = params.get('webhook');
-      if (wh) state.autoWebhookUrl = normalizeUrl(wh, null);
-    }
-
     function createChartStub() {
       return {
         data: {
@@ -1184,7 +1133,6 @@
     }
 
     applyPersisted();
-    applyUrlQueryParams();
     const versionEl = $('appVersion');
     if (versionEl) versionEl.textContent = APP_VERSION;
     els.endpointInput.value = state.settings.endpoint;
@@ -2058,10 +2006,6 @@
       updateBaselines();
       appendChartSample(sample);
       updateUI({ skipChart: true });
-
-      if (state.autoStartFromUrl && state.sent >= state.settings.percentileN) {
-        pause();
-      }
     }
 
     function updateBaselines() {
@@ -2113,7 +2057,6 @@
       if (state.inFlightProbe) state.inFlightProbe.abort('paused');
       addLog('info', 'log_monitoringPaused');
       updateUI({ skipChart: true });
-      triggerAutoExportOrWebhook();
     }
 
     function reset() {
@@ -2242,61 +2185,6 @@
         document.execCommand('copy');
         area.remove();
         toast(t('copied'));
-      }
-    }
-
-    function exportJson(customPayload = null) {
-      const payload = customPayload || {
-        timestamp: new Date().toISOString(),
-        version: APP_VERSION,
-        clientInfo: state.netTraceInfo,
-        settings: state.settings,
-        stats: currentStats(),
-        samples: state.samples
-      };
-      const jsonStr = JSON.stringify(payload, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `lagcheck_report_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast(t('exportJsonDone'));
-    }
-
-    async function triggerAutoExportOrWebhook() {
-      if (state.autoTriggered) return;
-      state.autoTriggered = true;
-
-      const payload = {
-        timestamp: new Date().toISOString(),
-        version: APP_VERSION,
-        clientInfo: state.netTraceInfo,
-        settings: state.settings,
-        stats: currentStats(),
-        samples: state.samples
-      };
-
-      if (state.autoExportFormat === 'json') {
-        exportJson(payload);
-      } else if (state.autoExportFormat === 'csv') {
-        exportCsv();
-      }
-
-      if (state.autoWebhookUrl) {
-        try {
-          await fetch(state.autoWebhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          toast(t('toastWebhookSent'));
-        } catch (err) {
-          toast(t('toastWebhookFailed'));
-        }
       }
     }
 
@@ -2495,15 +2383,6 @@
       pauseStress();
       if (state.inFlightProbe) state.inFlightProbe.abort('unload');
     });
-
-    if (state.autoStartFromUrl) {
-      start();
-      if (state.autoStressFromUrl) {
-        state.stress = true;
-        if (els.stressToggle) els.stressToggle.checked = true;
-        startStress();
-      }
-    }
     setLanguage(state.lang);
   </script>
 </body>
