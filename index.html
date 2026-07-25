@@ -608,6 +608,30 @@
     .grade-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
     .grade-table th, .grade-table td { padding: 8px 10px; border: 1px solid #e2e8f0; text-align: left; }
     .grade-table th { background: #f1f5f9; color: #1e293b; font-weight: 600; }
+    .target-scope-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 8px 14px;
+      background: var(--panel-soft); border: 1px solid var(--line-soft); border-radius: 10px;
+      font-size: 0.8rem; color: var(--soft);
+    }
+    .scope-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+    .scope-badge.single { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .scope-badge.broad { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .troubleshoot-card {
+      margin-top: 12px; padding: 14px 18px; border-radius: 12px;
+      background: #fff5f5; border: 1px solid #fecaca; border-left: 5px solid var(--rose);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.05);
+      animation: fadeIn 0.3s ease-out;
+    }
+    .troubleshoot-head {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    }
+    .troubleshoot-title { font-size: 0.9rem; font-weight: 700; color: #991b1b; margin: 0; display: flex; align-items: center; gap: 6px; }
+    .troubleshoot-steps { margin: 0; padding-left: 18px; font-size: 0.825rem; color: #7f1d1d; line-height: 1.65; }
+    .troubleshoot-steps li { margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -663,6 +687,30 @@
       </article>
     </section>
 
+    <div id="targetScopeBanner" class="target-scope-banner">
+      <div>💡 <span data-i18n="targetScopeLabel">診斷標的</span>: <strong id="targetScopeHost" style="color: var(--text);">—</strong> <span style="color: var(--muted); font-size: 0.75rem;" data-i18n="targetScopeDesc">(評級反映連至該目標之 HTTPS 體驗，非 L3/L4 網路斷線)</span></div>
+      <div id="crossRefBadge" class="scope-badge single" style="display: none;"></div>
+    </div>
+
+    <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
+      <div class="troubleshoot-head" id="troubleshootHead" style="cursor: pointer; user-select: none;">
+        <h3 class="troubleshoot-title">
+          <span id="troubleshootToggleIcon" style="font-size: 0.75rem; display: inline-block; transition: transform 0.2s;">▶</span>
+          <span data-i18n="troubleshootTitle">💡 連線品質不佳排障指引</span>
+        </h3>
+        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;" data-i18n="troubleshootStatusTag">點擊展開檢查步驟</span>
+      </div>
+      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 10px 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
+      </div>
+      <div id="troubleshootDetails" style="display: none;">
+        <ol class="troubleshoot-steps">
+          <li><strong data-i18n="troubleshootStep1Title">1. 確認目標網站</strong>：<span data-i18n="troubleshootStep1Desc">評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。</span></li>
+          <li><strong data-i18n="troubleshootStep2Title">2. 點擊「還原預設」對照</strong>：<span data-i18n="troubleshootStep2Desc">點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。</span></li>
+          <li><strong data-i18n="troubleshootStep3Title">3. 檢查本機網路連線</strong>：<span data-i18n="troubleshootStep3Desc">若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。</span></li>
+        </ol>
+      </div>
+    </div>
+
     <main class="workspace-grid">
       <section class="chart-panel">
         <div class="panel-head">
@@ -703,7 +751,7 @@
               <label id="fieldTimeout" class="field" data-tooltip="逾時門檻 (限制範圍: 1000 ~ 5000 ms)"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="1000" max="5000" step="100" /><span>ms</span></span></label>
               <label id="fieldFailover" class="field" data-tooltip="失敗切換門檻 (限制範圍: 3 ~ 10 次)"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="3" max="10" step="1" /><span data-i18n="timesUnit">次</span></span></label>
               <label id="fieldPercentileN" class="field" data-tooltip="樣本數 N (限制範圍: 30 ~ 500 筆)"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="30" max="500" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
-              <label id="fieldAutoStop" class="field" style="grid-column: span 2;" data-tooltip="自動停止 (限制: 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="10" selected data-i18n="autoStop10">10 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
+              <label id="fieldAutoStop" class="field" style="grid-column: span 2;" data-tooltip="自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="3" selected data-i18n="autoStop3">3 分鐘</option><option value="1" data-i18n="autoStop1">1 分鐘</option><option value="2" data-i18n="autoStop2">2 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="10" data-i18n="autoStop10">10 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
             </div>
             <label id="stressToggleRow" class="toggle-row" for="stressToggle">
               <span><span class="toggle-title" data-i18n="stressTitle">模擬下載速度</span><span id="stressHelp" class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
@@ -859,9 +907,9 @@
         timeoutTooltip: '逾時門檻 (限制範圍: 1000 ~ 5000 ms)',
         failoverTooltip: '失敗切換門檻 (限制範圍: 3 ~ 10 次)',
         percentileNTooltip: '樣本數 N (限制範圍: 30 ~ 500 筆)',
-        autoStopTooltip: '自動停止 (限制: 5, 10, 30, 60 分鐘或無限制)',
+        autoStopTooltip: '自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)',
         settingsBoundaryDesc: '💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。',
-        autoStopLabel: '自動停止', autoStop5: '5 分鐘', autoStop10: '10 分鐘', autoStop30: '30 分鐘', autoStop60: '60 分鐘', autoStopNever: '無限制 (永遠執行)',
+        autoStopLabel: '自動停止', autoStop1: '1 分鐘', autoStop2: '2 分鐘', autoStop3: '3 分鐘', autoStop5: '5 分鐘', autoStop10: '10 分鐘', autoStop30: '30 分鐘', autoStop60: '60 分鐘', autoStopNever: '無限制 (永遠執行)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
         start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: '測試設定', resetDefaults: '還原預設設定',
         settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
@@ -913,6 +961,21 @@
         urlExportTitle: '自動導出與 Webhook 回傳',
         urlExampleTitle: '實用範例 (Google 探測)',
         urlExampleText: '?host=www.google.com&autostart=1&samples=30&export=json,png',
+        targetScopeLabel: '診斷標的',
+        targetScopeDesc: '(評級反映連至該目標之 HTTPS 體驗，非 L3/L4 網路斷線)',
+        crossRefSingle: '⚠️ 特定目標連線異常 (本機 Internet 正常)',
+        crossRefBroad: '⚠️ 廣泛連線異常 (可能為 Wi-Fi/ISP 障礙)',
+        troubleshootTitle: '💡 連線品質不佳排障指引',
+        troubleshootStatusTag: '點擊展開對照分析與步驟',
+        troubleshootStep1Title: '1. 確認目標網站',
+        troubleshootStep1Desc: '評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。',
+        troubleshootStep2Title: '2. 點擊「還原預設」對照',
+        troubleshootStep2Desc: '點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。',
+        troubleshootStep3Title: '3. 檢查本機網路連線',
+        troubleshootStep3Desc: '若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。',
+        reasonPrimaryFail: '💡 主要目標 ({primary}) 無法連線，但備用目標 ({fallback}) 連線正常。這代表您本機網路完全正常，可能是該網站伺服器異常或維護中，建議聯繫該網站管理員。',
+        reasonSameDomain: '⚠️ 主要目標 ({primary}) 與備用目標 ({fallback}) 皆無法連線，且兩者屬於相同網域。這代表可能為該網站伺服器或其資料中心網路異常，請聯繫該網站管理員。',
+        reasonDiffDomain: '🚨 主要目標 ({primary}) 與備用目標 ({fallback}) 皆無法連線，且兩者屬於不同網域。這代表極可能是您本機的電腦網路、Wi-Fi 或 ISP 網路本身出現問題。',
         toastWebhookSent: '已完成自動 Webhook 數據回傳',
         toastWebhookFailed: 'Webhook 數據回傳失敗 (請檢查 CORS 或網路)',
         exportJsonDone: 'JSON 報告已下載。',
@@ -953,9 +1016,9 @@
         timeoutTooltip: 'Timeout Limit (Range: 1000 ~ 5000 ms)',
         failoverTooltip: 'Failover Limit (Range: 3 ~ 10 fails)',
         percentileNTooltip: 'Sample Size N (Range: 30 ~ 500 pts)',
-        autoStopTooltip: 'Auto-Stop (Limit: 5, 10, 30, 60 min or unlimited)',
+        autoStopTooltip: 'Auto-Stop (Limit: 1, 2, 3, 5, 10, 30, 60 min or unlimited)',
         settingsBoundaryDesc: '💡 Input Limits: Interval (200~2000ms), Timeout (1000~5000ms), Failover (3~10 fails), Sample Size N (30~500 pts).',
-        autoStopLabel: 'Auto-Stop', autoStop5: '5 Min', autoStop10: '10 Min', autoStop30: '30 Min', autoStop60: '60 Min', autoStopNever: 'Unlimited (Continuous)',
+        autoStopLabel: 'Auto-Stop', autoStop1: '1 Min', autoStop2: '2 Min', autoStop3: '3 Min', autoStop5: '5 Min', autoStop10: '10 Min', autoStop30: '30 Min', autoStop60: '60 Min', autoStopNever: 'Unlimited (Continuous)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
         start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Test Settings', resetDefaults: 'Reset Defaults',
         settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
@@ -998,13 +1061,30 @@
         f6Title: 'Network Egress Info (IP / Node / Loc)', f6Desc: 'Parses client public IP, Cloudflare edge node (colo, e.g. TPE = Taipei), and country location (loc) to verify local routing.',
         f7Title: 'Probe Latency Composition & Mechanism', f7Desc: 'Uses no-cors fetch to measure full RTT round-trip time. HTTPS latency includes "DNS Lookup + TCP Handshake + TLS Encryption Handshake + HTTP Transport" to reflect true connection experience.',
         f8Title: 'URL Automation Engine', f8Desc: 'Supports URL parameters (e.g. ?endpoint=...&autostart=1&samples=50&webhook=...) for zero-touch auto testing, webhook POST, and report export.',
-        urlAutomationHead: '⚡ URL Query Parameters Guide',
-        urlAutomationDesc: 'Supports zero-touch testing, custom targets, auto JSON export, and Webhook POST via URL search params:',
-        urlTargetTitle: 'Target URL Override',
+        urlAutomationHead: '⚡ URL Query Parameters Guide (Full Parameter List)',
+        urlAutomationDesc: 'Supports zero-touch testing, custom targets, auto JSON/PNG export, and Webhook POST via URL search params:',
+        urlTargetTitle: 'Target URL Override (Auto-prefixes https://)',
         urlControlTitle: 'Performance & Sample Limits',
-        urlAutoTitle: 'Auto Start & Export',
+        urlAutoTitle: 'Auto Start & Stress Test',
+        urlPrefsTitle: 'UI Language & Display Mode',
+        urlExportTitle: 'Auto Export & Webhook POST',
         urlExampleTitle: 'Usage Example (Google Probe)',
-        urlExampleText: '?endpoint=https%3A%2F%2Fwww.google.com&autostart=1&samples=30&export=json',
+        urlExampleText: '?host=www.google.com&autostart=1&samples=30&export=json,png',
+        targetScopeLabel: 'Target Host',
+        targetScopeDesc: '(Rating reflects HTTPS quality to target host, not L3/L4 physical disconnection)',
+        crossRefSingle: '⚠️ Target-Specific Issue (Internet OK)',
+        crossRefBroad: '⚠️ Broad Network Issue (Possible Wi-Fi/ISP Problem)',
+        troubleshootTitle: '💡 Troubleshooting Guide',
+        troubleshootStatusTag: 'Click to expand steps',
+        troubleshootStep1Title: '1. Check Target Website',
+        troubleshootStep1Desc: 'Connection to this website is slow or unreachable. The target server may be temporarily busy or under maintenance.',
+        troubleshootStep2Title: '2. Click "Reset Defaults" to Compare',
+        troubleshootStep2Desc: 'Click "Reset Defaults". If other websites work fine, the issue is isolated to this specific target.',
+        troubleshootStep3Title: '3. Check Local Network & Wi-Fi',
+        troubleshootStep3Desc: 'If all websites fail, try reconnecting your Wi-Fi, replugging network cable, or contacting IT support.',
+        reasonPrimaryFail: '💡 Primary target ({primary}) is unreachable, but fallback endpoint ({fallback}) works fine. Your local network is fully functional. The target website may be down or under maintenance; contact its administrator.',
+        reasonSameDomain: '⚠️ Both primary target ({primary}) and fallback endpoint ({fallback}) under the same domain are unreachable. The website server or datacenter network may be malfunctioning; contact its administrator.',
+        reasonDiffDomain: '🚨 Both primary target ({primary}) and fallback endpoint ({fallback}) under different domains are unreachable. Your local Wi-Fi, computer network, or ISP connection is likely down.',
         toastWebhookSent: 'Webhook report sent successfully',
         toastWebhookFailed: 'Failed to send Webhook report (Check CORS/network)',
         exportJsonDone: 'JSON report downloaded.',
@@ -1013,7 +1093,7 @@
         locTooltip: 'Client Egress Country/Region (e.g., TW = Taiwan)',
         stressToggleTooltip: 'Simulates background download traffic to check speed and network stability under full bandwidth load.',
         gradingHead: 'Enterprise Grading Scale (0 - 100)',
-        gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
+        gradingDesc: 'Evaluates latency (35%), jitter (25%), loss/timeout (30%) and spikes (10%) with a Bottleneck Cap guard to prevent severe drops being masked by good latency:',
         thGrade: 'Grade', thScore: 'Score', thDesc: 'Experience & Recommendations',
         sDesc: 'Excellent: Ultra-low latency (<50ms) with zero connection drops.',
         aDesc: 'Good: Latency 220ms~600ms, ideal for office work, online calls & warehouse barcode scanning.',
@@ -1021,7 +1101,7 @@
         cDesc: 'Unstable/Poor: High latency or frequent timeouts; check network connection.',
         warmUpRuleDesc: '💡 Dynamic Warm-up Threshold: When N > 100, 60 samples are required before displaying grade; when N ≤ 100, 30 samples are required to prevent initial skewed rating.',
         gradeTooltipNotEnough: 'Insufficient test samples ({progress}). Rating will display after reaching threshold.',
-        gradeTooltipRating: 'Grade: {label} (Score {score}/100) · Evaluates latency (35%), jitter (25%), loss/timeout (30%), and spikes (10%) with Bottleneck Cap guard.',
+        gradeTooltipRating: 'Grade: {label} (Score {score}/100) · Evaluates latency (35%), jitter (25%), loss/timeout (30%) and spikes (10%) with Bottleneck Cap guard.',
         formulaHead: 'Exact Calculation Formula',
         formulaWeightsTitle: 'Weighted Score Formula',
         formulaWeightsText: 'Score = 35% × Latency + 25% × Jitter + 30% × Loss + 10% × Spike',
@@ -1033,7 +1113,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.12';
+    const APP_VERSION = 'v1.0.14';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -1085,6 +1165,28 @@
     updateClientClock();
     setInterval(updateClientClock, 1000);
     const STORAGE_KEY = 'lagcheck-light-v1';
+    
+    function normalizeUrl(url, fallback) {
+      if (!url) return fallback;
+      let trimmed = url.trim();
+      if (!trimmed) return fallback;
+      if (!/^https?:\/\//i.test(trimmed)) trimmed = 'https://' + trimmed;
+      return trimmed;
+    }
+
+    function clampNumber(val, min, max, fallback) {
+      const num = Number(val);
+      if (isNaN(num)) return fallback;
+      return Math.min(Math.max(num, min), max);
+    }
+    
+    function getBaseDomain(hostname) {
+      if (!hostname) return '';
+      const parts = hostname.toLowerCase().split('.');
+      if (parts.length <= 2) return hostname;
+      return parts.slice(-2).join('.');
+    }
+
     const DEFAULTS = Object.freeze({
       endpoint: 'https://www.cloudflare.com/cdn-cgi/trace',
       fallbackEndpoint: 'https://checkip.amazonaws.com',
@@ -1093,7 +1195,7 @@
       timeoutMs: 2000,
       failoverThreshold: 5,
       percentileN: 200,
-      autoStopMin: 10,
+      autoStopMin: 3,
       maxSamples: 360,
       jitterWindow: 20,
       stressConcurrency: 2,
@@ -1896,6 +1998,59 @@
       els.stressState.textContent = state.stress ? t('underLoad') : t('idle');
       els.bufferbloatDelta.textContent = state.underLoadAvg != null && state.idleBaseline != null
         ? `${fmt(state.underLoadAvg - state.idleBaseline)} ms` : '—';
+
+      // 更新診斷標的與分層排障卡片
+      try {
+        const activeEndpoint = state.activeEndpointIndex === 0 ? state.settings.endpoint : state.settings.fallbackEndpoint;
+        const hostName = new URL(activeEndpoint).hostname;
+        if ($('targetScopeHost')) $('targetScopeHost').textContent = hostName;
+      } catch {
+        if ($('targetScopeHost')) $('targetScopeHost').textContent = '—';
+      }
+
+      const troubleshootCard = $('troubleshootingCard');
+      const crossRefBadge = $('crossRefBadge');
+      if (troubleshootCard) {
+        const isPoor = grade.grade === 'C' || grade.grade === 'F' || (stats.sentRecent >= 10 && stats.loss > 10.0);
+        troubleshootCard.style.display = isPoor ? 'block' : 'none';
+
+        if (isPoor) {
+          const isFailoverSwitched = state.activeEndpointIndex > 0;
+          let primaryHost = '—', fallbackHost = '—';
+          try { primaryHost = new URL(state.settings.endpoint).hostname; } catch {}
+          try { fallbackHost = new URL(state.settings.fallbackEndpoint).hostname; } catch {}
+
+          const primaryDomain = getBaseDomain(primaryHost);
+          const fallbackDomain = getBaseDomain(fallbackHost);
+          const isSameDomain = primaryDomain && fallbackDomain && primaryDomain === fallbackDomain;
+
+          const reasonEl = $('troubleshootDynamicReason');
+          if (reasonEl) {
+            if (isFailoverSwitched) {
+              if (isSameDomain) {
+                reasonEl.textContent = t('reasonSameDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
+              } else {
+                reasonEl.textContent = t('reasonDiffDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
+              }
+            } else {
+              reasonEl.textContent = t('reasonPrimaryFail').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
+            }
+          }
+
+          if (crossRefBadge) {
+            crossRefBadge.style.display = 'inline-flex';
+            if (isFailoverSwitched && !isSameDomain) {
+              crossRefBadge.className = 'scope-badge broad';
+              crossRefBadge.textContent = t('crossRefBroad');
+            } else {
+              crossRefBadge.className = 'scope-badge single';
+              crossRefBadge.textContent = t('crossRefSingle');
+            }
+          }
+        } else {
+          if (crossRefBadge) crossRefBadge.style.display = 'none';
+        }
+      }
       const previous = stats.valid.at(-2)?.latency;
       if (stats.current == null || previous == null) {
         els.latencyTrend.textContent = '—';
@@ -2500,6 +2655,18 @@
       els.logHead.addEventListener('click', (e) => {
         if (e.target && (e.target.id === 'clearLogBtn' || e.target.closest('#clearLogBtn'))) return;
         toggleLogCollapse();
+      });
+    }
+    const troubleshootHead = $('troubleshootHead');
+    const troubleshootDetails = $('troubleshootDetails');
+    const troubleshootToggleIcon = $('troubleshootToggleIcon');
+    if (troubleshootHead && troubleshootDetails) {
+      troubleshootHead.addEventListener('click', () => {
+        const isHidden = troubleshootDetails.style.display === 'none';
+        troubleshootDetails.style.display = isHidden ? 'block' : 'none';
+        if (troubleshootToggleIcon) {
+          troubleshootToggleIcon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+        }
       });
     }
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
