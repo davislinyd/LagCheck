@@ -426,8 +426,27 @@
     .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 2px; }
     .btn.secondary-sky { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
     .btn.secondary-green { color: #047857; border-color: #bbf7d0; background: #ecfdf5; }
-    .toast { min-height: 28px; padding: 6px 8px; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--soft); background: #f8fafc; font-size: 11px; line-height: 15px; }
-    .toast:empty { display: none; }
+    .toast {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid #93c5fd;
+      border-radius: 10px;
+      color: #1e40af;
+      background: #eff6ff;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.4;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.16);
+      animation: toastPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast:empty { display: none !important; }
+    @keyframes toastPop {
+      0% { transform: translateY(-4px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
     .log-card { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; overflow: hidden; }
     .log-head { height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line-soft); cursor: pointer; user-select: none; transition: background .15s ease; min-width: 0; }
     .log-head:hover { background: #f8fafc; }
@@ -695,14 +714,14 @@
     <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
       <div class="troubleshoot-head" id="troubleshootHead" style="cursor: pointer; user-select: none;">
         <h3 class="troubleshoot-title">
-          <span id="troubleshootToggleIcon" style="font-size: 0.75rem; display: inline-block; transition: transform 0.2s;">▶</span>
+          <span id="troubleshootToggleIcon" style="font-size: 0.75rem; display: inline-block; transform: rotate(90deg); transition: transform 0.2s;">▶</span>
           <span data-i18n="troubleshootTitle">💡 連線品質不佳排障指引</span>
         </h3>
-        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;" data-i18n="troubleshootStatusTag">點擊展開檢查步驟</span>
+        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;" data-i18n="troubleshootStatusTag">點擊收合/展開</span>
       </div>
       <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 10px 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
       </div>
-      <div id="troubleshootDetails" style="display: none;">
+      <div id="troubleshootDetails" style="display: block;">
         <ol class="troubleshoot-steps">
           <li><strong data-i18n="troubleshootStep1Title">1. 確認目標網站</strong>：<span data-i18n="troubleshootStep1Desc">評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。</span></li>
           <li><strong data-i18n="troubleshootStep2Title">2. 點擊「還原預設」對照</strong>：<span data-i18n="troubleshootStep2Desc">點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。</span></li>
@@ -1990,11 +2009,12 @@
       const troubleshootCard = $('troubleshootingCard');
       const crossRefBadge = $('crossRefBadge');
       if (troubleshootCard) {
-        const isPoor = grade.grade === 'C' || grade.grade === 'F' || (stats.sentRecent >= 10 && stats.loss > 10.0);
+        const isFailoverSwitched = state.activeEndpointIndex > 0;
+        const hasFailures = stats.failedRecent > 0 || state.consecutiveFailures > 0 || stats.loss > 0;
+        const isPoor = grade.grade === 'C' || grade.grade === 'F' || isFailoverSwitched || hasFailures;
         troubleshootCard.style.display = isPoor ? 'block' : 'none';
 
         if (isPoor) {
-          const isFailoverSwitched = state.activeEndpointIndex > 0;
           let primaryHost = '—', fallbackHost = '—';
           try { primaryHost = new URL(state.settings.endpoint).hostname; } catch {}
           try { fallbackHost = new URL(state.settings.fallbackEndpoint).hostname; } catch {}
@@ -2526,10 +2546,11 @@
     }
 
     function toast(message) {
-      els.actionToast.textContent = message;
+      if (!els.actionToast) return;
+      els.actionToast.textContent = `💡 ${message}`;
       els.actionToast.setAttribute('role', 'status');
       clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => { els.actionToast.textContent = ''; }, 2600);
+      toast._timer = setTimeout(() => { els.actionToast.textContent = ''; }, 3500);
     }
 
     function openModal() {
