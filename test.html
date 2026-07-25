@@ -1318,6 +1318,16 @@
 
       const wh = params.get('webhook');
       if (wh) state.autoWebhookUrl = normalizeUrl(wh, null);
+
+      // 確保 URL 預載參數立即同步寫入 DOM 輸入框
+      if (els.endpointInput) els.endpointInput.value = state.settings.endpoint;
+      if (els.fallbackEndpointInput) els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
+      if (els.downloadInput) els.downloadInput.value = state.settings.downloadUrl;
+      if (els.intervalInput) els.intervalInput.value = state.settings.intervalMs;
+      if (els.timeoutInput) els.timeoutInput.value = state.settings.timeoutMs;
+      if (els.failoverThresholdInput) els.failoverThresholdInput.value = state.settings.failoverThreshold;
+      if (els.percentileNInput) els.percentileNInput.value = state.settings.percentileN;
+      if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
     }
 
     function createChartStub() {
@@ -2725,6 +2735,7 @@
       if (state.inFlightProbe) state.inFlightProbe.abort('unload');
     });
 
+    setLanguage(state.lang);
     if (state.autoStartFromUrl) {
       start();
       if (state.autoStressFromUrl) {
@@ -2733,7 +2744,6 @@
         startStress();
       }
     }
-    setLanguage(state.lang);
   </script>
 </body>
 </html>
