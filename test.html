@@ -694,13 +694,13 @@
 
     <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
       <div class="troubleshoot-head">
-        <h3 class="troubleshoot-title"><span>🛠️</span> <span data-i18n="troubleshootTitle">分層排障處置建議 (Layered Troubleshooting Steps)</span></h3>
-        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;">建議處置</span>
+        <h3 class="troubleshoot-title"><span data-i18n="troubleshootTitle">💡 連線品質不佳排障指引</span></h3>
+        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;">建議檢查步驟</span>
       </div>
       <ol class="troubleshoot-steps">
-        <li><strong data-i18n="troubleshootStep1Title">L7 應用層</strong>：<span data-i18n="troubleshootStep1Desc">評級僅反映連至特定目標端點之 HTTPS 傳輸品質，請確認受測目標 API 服務運作狀態。</span></li>
-        <li><strong data-i18n="troubleshootStep2Title">對照測試</strong>：<span data-i18n="troubleshootStep2Desc">點擊「還原預設」切換至 Cloudflare / AWS 公有端點，確認是否為特定伺服器單點障礙。</span></li>
-        <li><strong data-i18n="troubleshootStep3Title">L3/L4 實體層</strong>：<span data-i18n="troubleshootStep3Desc">若全端點皆異常，建議開啟命令列執行 ping 8.8.8.8 或 traceroute 檢查本機 Wi-Fi / 實體網路。</span></li>
+        <li><strong data-i18n="troubleshootStep1Title">1. 確認目標網站</strong>：<span data-i18n="troubleshootStep1Desc">評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。</span></li>
+        <li><strong data-i18n="troubleshootStep2Title">2. 點擊「還原預設」對照</strong>：<span data-i18n="troubleshootStep2Desc">點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。</span></li>
+        <li><strong data-i18n="troubleshootStep3Title">3. 檢查本機網路連線</strong>：<span data-i18n="troubleshootStep3Desc">若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。</span></li>
       </ol>
     </div>
 
@@ -958,13 +958,13 @@
         targetScopeDesc: '(評級反映連至該目標之 HTTPS 體驗，非 L3/L4 網路斷線)',
         crossRefSingle: '⚠️ 特定目標連線異常 (本機 Internet 正常)',
         crossRefBroad: '⚠️ 廣泛連線異常 (可能為 Wi-Fi/ISP 障礙)',
-        troubleshootTitle: '分層排障處置建議 (Layered Troubleshooting Steps)',
-        troubleshootStep1Title: '1. L7 應用層',
-        troubleshootStep1Desc: '評級僅反映連至特定目標端點之 HTTPS 傳輸品質，請確認受測目標 API 服務運作狀態。',
-        troubleshootStep2Title: '2. 對照測試',
-        troubleshootStep2Desc: '點擊「還原預設」切換至 Cloudflare / AWS 公有端點，確認是否為特定伺服器單點障礙。',
-        troubleshootStep3Title: '3. L3/L4 實體層',
-        troubleshootStep3Desc: '若全端點皆異常，建議開啟命令列執行 ping 8.8.8.8 或 traceroute 檢查本機 Wi-Fi / 實體網路。',
+        troubleshootTitle: '💡 連線品質不佳排障指引',
+        troubleshootStep1Title: '1. 確認目標網站',
+        troubleshootStep1Desc: '評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。',
+        troubleshootStep2Title: '2. 點擊「還原預設」對照',
+        troubleshootStep2Desc: '點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。',
+        troubleshootStep3Title: '3. 檢查本機網路連線',
+        troubleshootStep3Desc: '若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。',
         toastWebhookSent: '已完成自動 Webhook 數據回傳',
         toastWebhookFailed: 'Webhook 數據回傳失敗 (請檢查 CORS 或網路)',
         exportJsonDone: 'JSON 報告已下載。',
@@ -1057,6 +1057,17 @@
         urlAutoTitle: 'Auto Start & Export',
         urlExampleTitle: 'Usage Example (Google Probe)',
         urlExampleText: '?endpoint=https%3A%2F%2Fwww.google.com&autostart=1&samples=30&export=json',
+        targetScopeLabel: 'Target Host',
+        targetScopeDesc: '(Rating reflects HTTPS quality to target host, not L3/L4 physical disconnection)',
+        crossRefSingle: '⚠️ Target-Specific Issue (Internet OK)',
+        crossRefBroad: '⚠️ Broad Network Issue (Possible Wi-Fi/ISP Problem)',
+        troubleshootTitle: '💡 Troubleshooting Guide',
+        troubleshootStep1Title: '1. Check Target Website',
+        troubleshootStep1Desc: 'Connection to this website is slow or unreachable. The target server may be temporarily busy or under maintenance.',
+        troubleshootStep2Title: '2. Click "Reset Defaults" to Compare',
+        troubleshootStep2Desc: 'Click "Reset Defaults". If other websites work fine, the issue is isolated to this specific target.',
+        troubleshootStep3Title: '3. Check Local Network & Wi-Fi',
+        troubleshootStep3Desc: 'If all websites fail, try reconnecting your Wi-Fi, replugging network cable, or contacting IT support.',
         toastWebhookSent: 'Webhook report sent successfully',
         toastWebhookFailed: 'Failed to send Webhook report (Check CORS/network)',
         exportJsonDone: 'JSON report downloaded.',
