@@ -1319,15 +1319,7 @@
       const wh = params.get('webhook');
       if (wh) state.autoWebhookUrl = normalizeUrl(wh, null);
 
-      // 確保 URL 預載參數立即同步寫入 DOM 輸入框
-      if (els.endpointInput) els.endpointInput.value = state.settings.endpoint;
-      if (els.fallbackEndpointInput) els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
-      if (els.downloadInput) els.downloadInput.value = state.settings.downloadUrl;
-      if (els.intervalInput) els.intervalInput.value = state.settings.intervalMs;
-      if (els.timeoutInput) els.timeoutInput.value = state.settings.timeoutMs;
-      if (els.failoverThresholdInput) els.failoverThresholdInput.value = state.settings.failoverThreshold;
-      if (els.percentileNInput) els.percentileNInput.value = state.settings.percentileN;
-      if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
+      syncInputsFromState();
     }
 
     function createChartStub() {
@@ -1344,18 +1336,22 @@
       };
     }
 
+    function syncInputsFromState() {
+      if (els.endpointInput) els.endpointInput.value = state.settings.endpoint;
+      if (els.fallbackEndpointInput) els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
+      if (els.downloadInput) els.downloadInput.value = state.settings.downloadUrl;
+      if (els.intervalInput) els.intervalInput.value = state.settings.intervalMs;
+      if (els.timeoutInput) els.timeoutInput.value = state.settings.timeoutMs;
+      if (els.failoverThresholdInput) els.failoverThresholdInput.value = state.settings.failoverThreshold;
+      if (els.percentileNInput) els.percentileNInput.value = state.settings.percentileN;
+      if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
+    }
+
     applyPersisted();
     applyUrlQueryParams();
     const versionEl = $('appVersion');
     if (versionEl) versionEl.textContent = APP_VERSION;
-    els.endpointInput.value = state.settings.endpoint;
-    els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
-    els.downloadInput.value = state.settings.downloadUrl;
-    els.intervalInput.value = state.settings.intervalMs;
-    els.timeoutInput.value = state.settings.timeoutMs;
-    els.failoverThresholdInput.value = state.settings.failoverThreshold;
-    els.percentileNInput.value = state.settings.percentileN;
-    if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
+    syncInputsFromState();
 
     if (!state.chartReady && els.chartMissing) {
       els.chartMissing.dataset.visible = 'true';
@@ -1527,21 +1523,20 @@
     }
 
     function updateSettingsFromInputs() {
-      state.settings.endpoint = normalizeUrl(els.endpointInput.value, DEFAULTS.endpoint);
-      state.settings.fallbackEndpoint = normalizeUrl(els.fallbackEndpointInput.value, DEFAULTS.fallbackEndpoint);
-      state.settings.downloadUrl = normalizeUrl(els.downloadInput.value, DEFAULTS.downloadUrl);
-      state.settings.intervalMs = clampNumber(els.intervalInput.value, 200, 2000, DEFAULTS.intervalMs);
-      state.settings.timeoutMs = clampNumber(els.timeoutInput.value, 1000, 5000, DEFAULTS.timeoutMs);
-      state.settings.failoverThreshold = clampNumber(els.failoverThresholdInput.value, 3, 10, DEFAULTS.failoverThreshold);
-      state.settings.percentileN = clampNumber(els.percentileNInput.value, 30, 500, DEFAULTS.percentileN);
-      if (els.autoStopSelect) state.settings.autoStopMin = clampNumber(els.autoStopSelect.value, 0, 1440, DEFAULTS.autoStopMin);
-      els.endpointInput.value = state.settings.endpoint;
-      els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
-      els.downloadInput.value = state.settings.downloadUrl;
-      els.intervalInput.value = state.settings.intervalMs;
-      els.timeoutInput.value = state.settings.timeoutMs;
-      els.failoverThresholdInput.value = state.settings.failoverThreshold;
-      els.percentileNInput.value = state.settings.percentileN;
+      const epVal = els.endpointInput ? els.endpointInput.value : '';
+      const fepVal = els.fallbackEndpointInput ? els.fallbackEndpointInput.value : '';
+      const dlVal = els.downloadInput ? els.downloadInput.value : '';
+      state.settings.endpoint = normalizeUrl(epVal, state.settings.endpoint || DEFAULTS.endpoint);
+      state.settings.fallbackEndpoint = normalizeUrl(fepVal, state.settings.fallbackEndpoint || DEFAULTS.fallbackEndpoint);
+      state.settings.downloadUrl = normalizeUrl(dlVal, state.settings.downloadUrl || DEFAULTS.downloadUrl);
+      state.settings.intervalMs = clampNumber(els.intervalInput ? els.intervalInput.value : null, 200, 2000, state.settings.intervalMs || DEFAULTS.intervalMs);
+      state.settings.timeoutMs = clampNumber(els.timeoutInput ? els.timeoutInput.value : null, 1000, 5000, state.settings.timeoutMs || DEFAULTS.timeoutMs);
+      state.settings.failoverThreshold = clampNumber(els.failoverThresholdInput ? els.failoverThresholdInput.value : null, 3, 10, state.settings.failoverThreshold || DEFAULTS.failoverThreshold);
+      state.settings.percentileN = clampNumber(els.percentileNInput ? els.percentileNInput.value : null, 30, 500, state.settings.percentileN || DEFAULTS.percentileN);
+      if (els.autoStopSelect && els.autoStopSelect.value != null) {
+        state.settings.autoStopMin = clampNumber(els.autoStopSelect.value, 0, 1440, state.settings.autoStopMin || DEFAULTS.autoStopMin);
+      }
+      syncInputsFromState();
       persist();
     }
 
@@ -2736,6 +2731,7 @@
     });
 
     setLanguage(state.lang);
+    syncInputsFromState();
     if (state.autoStartFromUrl) {
       start();
       if (state.autoStressFromUrl) {
