@@ -2165,16 +2165,21 @@
         : { type, message: keyOrMsg, timestamp: Date.now() };
       state.eventLog.unshift(entry);
       if (state.eventLog.length > 100) state.eventLog.length = 100;
+      if (!els.eventLog || typeof els.eventLog.querySelector !== 'function') return;
       const empty = els.eventLog.querySelector('.empty-log');
-      if (empty || !els.eventLog.children.length) {
+      if (empty || !els.eventLog.children || !els.eventLog.children.length) {
         renderLog();
         return;
       }
       els.eventLog.insertAdjacentHTML('afterbegin', logEntryHtml(entry));
-      while (els.eventLog.children.length > 100) els.eventLog.lastElementChild.remove();
+      while (els.eventLog.children && els.eventLog.children.length > 100) {
+        if (els.eventLog.lastElementChild) els.eventLog.lastElementChild.remove();
+        else break;
+      }
     }
 
     function renderLog() {
+      if (!els.eventLog) return;
       if (!state.eventLog.length) {
         els.eventLog.innerHTML = `<div class="empty-log">${t('noEvents')}</div>`;
         return;
