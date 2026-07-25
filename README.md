@@ -2,7 +2,7 @@
 
 Browser-based real-time network stability diagnostic tool. Measures **connection latency**, **jitter**, **fail/timeout rate**, **network egress (IP/Node/Loc)**, and **download speed simulation under load (bufferbloat)**. Ideal for office IT, warehouse Logistics PDA scanning, online video calls, and remote desktop troubleshooting.
 
-目前版本 / Version: **v1.0.12**
+目前版本 / Version: **v1.0.13**
 
 [ 中文 ](#-中文) | [ English ](#-english)
 
@@ -35,15 +35,15 @@ python3 -m http.server 8080
 
 | 檔案 | 說明 |
 |------|------|
-| `index.html` | 正式版主程式（v1.0.12，包含 URL 自動化引擎、還原預設、短板封頂對數模型與資源優化） |
-| `test.html` | 測試版獨立發布檔（用於線上 Candidate 功能驗證） |
+| `index.html` | 正式版主程式（v1.0.13，包含網域感知對照排障、診斷標的免責註記、URL 自動化引擎、還原預設、短板封頂對數模型與資源優化） |
+| `test.html` | 測試版主程式（v1.0.13-rc，新功能研發與發布前測試 Candidate） |
 | `lagcheck_auto.py` | Python Playwright 無頭自動化測試與 JSON / PNG 下載工具 |
 
 依賴：Chart.js 4.4.7（CDN，含 SRI）。CDN 暫時不可用時仍可正常連線量測與匯出，僅圖表不顯示。
 
 ---
 
-### 核心功能 (v1.0.12)
+### 核心功能 (v1.0.13)
 
 - **即時連線探測**：預設間隔 500ms（主要端點 Cloudflare `cdn-cgi/trace`，備用端點 AWS `checkip.amazonaws.com`）。
 - **自動備援探測 (Failover)**：連續失敗達門檻自動切換探測端點，並自動上記日誌。
@@ -154,7 +154,7 @@ $$W(k, n, z) = \frac{\hat{p} + \frac{z^2}{2n} + z \sqrt{\frac{\hat{p}(1 - \hat{p
 
 ---
 
-### 預設參數（v1.0.12）
+### 預設參數（v1.0.13）
 
 | 參數 | 預設 | 合法限制範圍 | URL 簡寫參數別名 |
 |------|------|-------------|------------------|
@@ -212,15 +212,15 @@ python3 -m http.server 8080
 
 | File | Description |
 |------|-------------|
-| `index.html` | Single-file application for Production (v1.0.12 with URL Automation Engine, Reset Defaults, bottleneck-capped scale, and energy-saving safeguards) |
-| `test.html` | Independent Staging application (for online Candidate feature verification) |
+| `index.html` | Single-file application for Production (v1.0.13 with domain-aware troubleshooting, target scope disclaimer, URL Automation Engine, Reset Defaults, bottleneck-capped scale, and energy-saving safeguards) |
+| `test.html` | Staging single-file application (v1.0.13-rc for candidate pre-release verification) |
 | `lagcheck_auto.py` | Python Playwright headless automation script for automated probing & JSON/PNG report downloads |
 
 *Dependencies*: Chart.js 4.4.7 via CDN (with SRI). Even if the CDN is temporarily unreachable, latency probing and data exports remain fully functional (only line charts are hidden).
 
 ---
 
-### Key Features (v1.0.12)
+### Key Features (v1.0.13)
 
 - **Real-Time Latency Probing**: Default 500ms interval (Primary endpoint Cloudflare `cdn-cgi/trace`, Fallback endpoint AWS `checkip.amazonaws.com`).
 - **Automated Failover Probing**: Automatically switches active probe endpoint upon consecutive failure threshold with instant event logging.
@@ -331,7 +331,7 @@ Given $n = 50$ total samples:
 
 ---
 
-### Default Configuration (v1.0.12)
+### Default Configuration (v1.0.13)
 
 | Setting | Default | Input Range | URL Short Parameter Aliases |
 |---------|---------|-------------|-----------------------------|
