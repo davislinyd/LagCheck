@@ -76,6 +76,73 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1
 
 ---
 
+### 企業評級演算法與數學計算公式 (Rating Algorithm & Mathematical Formulas)
+
+LagCheck 採用**短板封頂對數模型 (Bottleneck-Capped Scale)**，計算邏輯包含「暖機門檻判斷」、「四項指標加權」、「Wilson 統計信心修正」與「短板瓶頸封頂防護」。
+
+#### 1. 核心數學函數 (Core Mathematical Functions)
+
+##### A. 區間線性映射函數 $S(v, g, b)$
+將實際測量值 $v$ 映射至 $0 \sim 100$ 分。其中 $g$ (Good) 為完美門檻，$b$ (Bad) 為最差門檻：
+$$S(v, g, b) = \begin{cases} 100, & v \le g \\ 0, & v \ge b \\ 100 \times \frac{b - v}{b - g}, & g < v < b \end{cases}$$
+
+##### B. Wilson 95% 信心區間上界 $W(k, n, z)$
+針對小樣本數探測，計算失敗率的 95% 統計上界，防範抽樣誤差：
+$$W(k, n, z) = \frac{\hat{p} + \frac{z^2}{2n} + z \sqrt{\frac{\hat{p}(1 - \hat{p})}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}$$
+*其中 $\hat{p} = \frac{k}{n}$ ($k$ 為失敗次數，$n$ 為總採樣數)，$z = 1.96$。*
+
+---
+
+#### 2. 各指標分項得分算式 (Sub-score Calculations)
+
+* **連線延遲得分 ($S_{\text{latency}}$)**：
+  $$S_{\text{latency}} = 0.5 \times S(P_{50}, 220, 600) + 0.5 \times S(P_{95}, 400, 900)$$
+
+* **網路抖動得分 ($S_{\text{jitter}}$)**：
+  $$S_{\text{jitter}} = 0.6 \times S(\text{Jitter}, 60, 180) + 0.4 \times S(\text{MAD}, 45, 140)$$
+
+* **失敗 / 逾時率得分 ($S_{\text{loss}}$)**：
+  $$S_{\text{loss}} = S\Big(100 \times W(k, n, 1.96), \; 4.0, \; 16.0\Big)$$
+
+* **異常尖峰率得分 ($S_{\text{spike}}$)**：
+  $$S_{\text{spike}} = S(\text{Rate}_{\text{spike}}, 12.0, 40.0)$$
+
+---
+
+#### 3. 總分與短板瓶頸封頂算式 (Final Score & Bottleneck Cap)
+
+* **原始加權總分 ($S_{\text{raw}}$)**：
+  $$S_{\text{raw}} = 0.35 S_{\text{latency}} + 0.25 S_{\text{jitter}} + 0.30 S_{\text{loss}} + 0.10 S_{\text{spike}}$$
+
+* **短板瓶頸封頂門檻 ($C_{\text{bottleneck}}$)**：
+  $$C_{\text{bottleneck}} = \min\big(S_{\text{loss}} + 25, \; S_{\text{latency}} + 25\big)$$
+
+* **最終評級總分 ($S_{\text{final}}$)**：
+  $$S_{\text{final}} = \min\big(S_{\text{raw}}, \; C_{\text{bottleneck}}\big)$$
+
+---
+
+#### 4. 具體計算示範與過程 (Detailed Calculation Example)
+
+**假設採樣 $n = 50$ 筆**，量測數據如下：
+* $P_{50} = 150\text{ ms}, \; P_{95} = 280\text{ ms}$
+* 失敗次數 $k = 2$ 次 (原始失敗率 $4\%$)
+* $\text{Jitter} = 12\text{ ms}, \; \text{MAD} = 8\text{ ms}$
+* 發生 1 次尖峰 ($\text{Rate}_{\text{spike}} = 2\%$)
+
+**計算過程展開**：
+1. **延遲分數**：$S(150, 220, 600) = 100$, $S(280, 400, 900) = 100 \implies S_{\text{latency}} = 100$
+2. **遺失率分數**：代入 $W(2, 50, 1.96) \approx 0.0664 \ (6.64\%)$
+   $$S_{\text{loss}} = S(6.64, 4.0, 16.0) = 100 \times \frac{16.0 - 6.64}{16.0 - 4.0} = 78.0$$
+3. **抖動分數**：$S(12, 60, 180) = 100$, $S(8, 45, 140) = 100 \implies S_{\text{jitter}} = 100$
+4. **尖峰分數**：$S(2.0, 12.0, 40.0) = 100 \implies S_{\text{spike}} = 100$
+5. **總分導出**：
+   $$S_{\text{raw}} = (100 \times 0.35) + (100 \times 0.25) + (78.0 \times 0.30) + (100 \times 0.10) = 93.4$$
+   $$C_{\text{bottleneck}} = \min(78.0 + 25, \; 100 + 25) = 103.0$$
+   $$S_{\text{final}} = \min(93.4, 103.0) = \mathbf{93.4 \text{ 分 (S 級)}}$$
+
+---
+
 ### 指標語意（重要）
 
 | 畫面名稱 | 實際意義 |
@@ -183,6 +250,73 @@ https://davislinyd.github.io/LagCheck/?host=www.google.com&autostart=1&samples=3
 ```text
 https://davislinyd.github.io/LagCheck/?host=www.google.com&interval=200&stress=1&autostart=1&samples=50&webhook=https%3A%2F%2Fapi.mycompany.com%2Freport
 ```
+
+---
+
+### Rating Algorithm & Mathematical Formulas
+
+LagCheck utilizes a **Bottleneck-Capped Scale** model, incorporating warm-up validation, 4-metric weighted scoring, Wilson confidence bounds, and bottleneck capping protection.
+
+#### 1. Core Mathematical Functions
+
+##### A. Range Linear Mapping Function $S(v, g, b)$
+Maps raw measurement $v$ into a $0 \sim 100$ score, given good threshold $g$ and bad threshold $b$:
+$$S(v, g, b) = \begin{cases} 100, & v \le g \\ 0, & v \ge b \\ 100 \times \frac{b - v}{b - g}, & g < v < b \end{cases}$$
+
+##### B. Wilson 95% Confidence Interval Upper Bound $W(k, n, z)$
+Calculates the 95% upper confidence bound for failure rate under small sample sizes:
+$$W(k, n, z) = \frac{\hat{p} + \frac{z^2}{2n} + z \sqrt{\frac{\hat{p}(1 - \hat{p})}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}$$
+*Where $\hat{p} = \frac{k}{n}$ ($k$: failures, $n$: total samples), $z = 1.96$.*
+
+---
+
+#### 2. Sub-score Calculations
+
+* **Latency Score ($S_{\text{latency}}$)**:
+  $$S_{\text{latency}} = 0.5 \times S(P_{50}, 220, 600) + 0.5 \times S(P_{95}, 400, 900)$$
+
+* **Jitter Score ($S_{\text{jitter}}$)**:
+  $$S_{\text{jitter}} = 0.6 \times S(\text{Jitter}, 60, 180) + 0.4 \times S(\text{MAD}, 45, 140)$$
+
+* **Loss Rate Score ($S_{\text{loss}}$)**:
+  $$S_{\text{loss}} = S\Big(100 \times W(k, n, 1.96), \; 4.0, \; 16.0\Big)$$
+
+* **Spike Rate Score ($S_{\text{spike}}$)**:
+  $$S_{\text{spike}} = S(\text{Rate}_{\text{spike}}, 12.0, 40.0)$$
+
+---
+
+#### 3. Final Score & Bottleneck Cap Guard
+
+* **Raw Weighted Score ($S_{\text{raw}}$)**:
+  $$S_{\text{raw}} = 0.35 S_{\text{latency}} + 0.25 S_{\text{jitter}} + 0.30 S_{\text{loss}} + 0.10 S_{\text{spike}}$$
+
+* **Bottleneck Cap Limit ($C_{\text{bottleneck}}$)**:
+  $$C_{\text{bottleneck}} = \min\big(S_{\text{loss}} + 25, \; S_{\text{latency}} + 25\big)$$
+
+* **Final Rating Score ($S_{\text{final}}$)**:
+  $$S_{\text{final}} = \min\big(S_{\text{raw}}, \; C_{\text{bottleneck}}\big)$$
+
+---
+
+#### 4. Detailed Calculation Example
+
+Given $n = 50$ total samples:
+* $P_{50} = 150\text{ ms}, \; P_{95} = 280\text{ ms}$
+* Failure count $k = 2$ (Raw loss rate $4\%$)
+* $\text{Jitter} = 12\text{ ms}, \; \text{MAD} = 8\text{ ms}$
+* 1 spike event ($\text{Rate}_{\text{spike}} = 2\%$)
+
+**Step-by-step Execution**:
+1. **Latency**: $S(150, 220, 600) = 100$, $S(280, 400, 900) = 100 \implies S_{\text{latency}} = 100$
+2. **Loss**: Evaluate $W(2, 50, 1.96) \approx 0.0664 \ (6.64\%)$
+   $$S_{\text{loss}} = S(6.64, 4.0, 16.0) = 100 \times \frac{16.0 - 6.64}{16.0 - 4.0} = 78.0$$
+3. **Jitter**: $S(12, 60, 180) = 100$, $S(8, 45, 140) = 100 \implies S_{\text{jitter}} = 100$
+4. **Spike**: $S(2.0, 12.0, 40.0) = 100 \implies S_{\text{spike}} = 100$
+5. **Final Evaluation**:
+   $$S_{\text{raw}} = (100 \times 0.35) + (100 \times 0.25) + (78.0 \times 0.30) + (100 \times 0.10) = 93.4$$
+   $$C_{\text{bottleneck}} = \min(78.0 + 25, \; 100 + 25) = 103.0$$
+   $$S_{\text{final}} = \min(93.4, 103.0) = \mathbf{93.4 \ (\text{Grade S})}$$
 
 ---
 
