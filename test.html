@@ -1974,11 +1974,15 @@
 
       const troubleshootCard = $('troubleshootingCard');
       if (troubleshootCard) {
+        const threshold = state.settings.failoverThreshold || DEFAULTS.failoverThreshold;
         const isFailoverSwitched = state.activeEndpointIndex > 0;
         const lastSample = state.samples.at(-1);
         const currentIsOk = lastSample && lastSample.status === 'ok';
-        const hasFailures = stats.failedRecent > 0 || state.consecutiveFailures > 0 || stats.loss > 0;
-        const isPoor = state.samples.length > 0 && (grade.grade === 'C' || grade.grade === 'F' || isFailoverSwitched || hasFailures);
+        const reachedFailoverLimit = state.consecutiveFailures >= threshold || stats.failedRecent >= threshold;
+
+        const isPoor = state.samples.length > 0 && (
+          grade.grade === 'C' || grade.grade === 'F' || isFailoverSwitched || reachedFailoverLimit
+        );
         troubleshootCard.style.display = isPoor ? 'block' : 'none';
 
         if (isPoor) {
