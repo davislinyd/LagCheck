@@ -2010,6 +2010,8 @@
       const crossRefBadge = $('crossRefBadge');
       if (troubleshootCard) {
         const isFailoverSwitched = state.activeEndpointIndex > 0;
+        const lastSample = state.samples.at(-1);
+        const currentIsOk = lastSample && lastSample.status === 'ok';
         const hasFailures = stats.failedRecent > 0 || state.consecutiveFailures > 0 || stats.loss > 0;
         const isPoor = grade.grade === 'C' || grade.grade === 'F' || isFailoverSwitched || hasFailures;
         troubleshootCard.style.display = isPoor ? 'block' : 'none';
@@ -2023,9 +2025,12 @@
           const fallbackDomain = getBaseDomain(fallbackHost);
           const isSameDomain = primaryDomain && fallbackDomain && primaryDomain === fallbackDomain;
 
+          // 判斷備用端點是否正成功連線
+          const fallbackWorking = isFailoverSwitched && (currentIsOk || state.consecutiveFailures === 0);
+
           const reasonEl = $('troubleshootDynamicReason');
           if (reasonEl) {
-            if (isFailoverSwitched) {
+            if (isFailoverSwitched && !fallbackWorking) {
               if (isSameDomain) {
                 reasonEl.textContent = t('reasonSameDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
               } else {
@@ -2038,7 +2043,7 @@
 
           if (crossRefBadge) {
             crossRefBadge.style.display = 'inline-flex';
-            if (isFailoverSwitched && !isSameDomain) {
+            if (isFailoverSwitched && !fallbackWorking && !isSameDomain) {
               crossRefBadge.className = 'scope-badge broad';
               crossRefBadge.textContent = t('crossRefBroad');
             } else {
