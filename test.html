@@ -45,8 +45,8 @@
       padding-right: max(14px, env(safe-area-inset-right));
       padding-bottom: max(14px, env(safe-area-inset-bottom));
       padding-left: max(14px, env(safe-area-inset-left));
-      display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
     .topbar {
@@ -281,7 +281,7 @@
     .metric-number { font-size: clamp(30px, 4vw, 44px); line-height: .92; font-weight: 860; letter-spacing: -.055em; font-variant-numeric: tabular-nums; color: #111827; }
     .unit { margin-bottom: 4px; color: var(--muted); font-size: 12px; font-weight: 760; }
     .metric-foot { color: var(--muted); font-size: 11px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr) 356px; gap: 10px; min-height: 0; }
+    .workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr) 356px; gap: 10px; min-height: 0; flex: 1 1 0; }
     .chart-panel, .side-panel {
       border: 1px solid var(--line);
       border-radius: 16px;
@@ -670,6 +670,16 @@
       </div>
     </header>
 
+    <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
+      <div class="troubleshoot-head" id="troubleshootHead">
+        <h3 class="troubleshoot-title">
+          <span data-i18n="troubleshootTitle">💡 連線診斷指引</span>
+        </h3>
+      </div>
+      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 0 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
+      </div>
+    </div>
+
     <div id="chartMissing" class="cdn-banner" role="alert" data-i18n="chartMissing">圖表函式庫載入失敗，曲線無法顯示。請檢查網路或 CDN 連線後重新整理。</div>
 
     <section class="summary-strip" aria-label="Metrics" data-i18n-aria="metricsAria">
@@ -694,18 +704,6 @@
         <div class="metric-foot"><span data-i18n="bufferDeltaLabel">壅塞延遲差</span> <span id="bufferbloatDelta">—</span></div>
       </article>
     </section>
-
-
-
-    <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
-      <div class="troubleshoot-head" id="troubleshootHead">
-        <h3 class="troubleshoot-title">
-          <span data-i18n="troubleshootTitle">💡 連線診斷指引</span>
-        </h3>
-      </div>
-      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 0 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
-      </div>
-    </div>
 
     <main class="workspace-grid">
       <section class="chart-panel">
