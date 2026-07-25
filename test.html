@@ -712,21 +712,12 @@
     </div>
 
     <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
-      <div class="troubleshoot-head" id="troubleshootHead" style="cursor: pointer; user-select: none;">
+      <div class="troubleshoot-head" id="troubleshootHead">
         <h3 class="troubleshoot-title">
-          <span id="troubleshootToggleIcon" style="font-size: 0.75rem; display: inline-block; transform: rotate(90deg); transition: transform 0.2s;">▶</span>
-          <span data-i18n="troubleshootTitle">💡 連線品質不佳排障指引</span>
+          <span data-i18n="troubleshootTitle">💡 連線診斷指引</span>
         </h3>
-        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;" data-i18n="troubleshootStatusTag">點擊收合/展開</span>
       </div>
-      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 10px 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
-      </div>
-      <div id="troubleshootDetails" style="display: block;">
-        <ol class="troubleshoot-steps">
-          <li><strong data-i18n="troubleshootStep1Title">1. 確認目標網站</strong>：<span data-i18n="troubleshootStep1Desc">評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。</span></li>
-          <li><strong data-i18n="troubleshootStep2Title">2. 點擊「還原預設」對照</strong>：<span data-i18n="troubleshootStep2Desc">點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。</span></li>
-          <li><strong data-i18n="troubleshootStep3Title">3. 檢查本機網路連線</strong>：<span data-i18n="troubleshootStep3Desc">若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。</span></li>
-        </ol>
+      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 0 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
       </div>
     </div>
 
@@ -2667,18 +2658,7 @@
         toggleLogCollapse();
       });
     }
-    const troubleshootHead = $('troubleshootHead');
-    const troubleshootDetails = $('troubleshootDetails');
-    const troubleshootToggleIcon = $('troubleshootToggleIcon');
-    if (troubleshootHead && troubleshootDetails) {
-      troubleshootHead.addEventListener('click', () => {
-        const isHidden = troubleshootDetails.style.display === 'none';
-        troubleshootDetails.style.display = isHidden ? 'block' : 'none';
-        if (troubleshootToggleIcon) {
-          troubleshootToggleIcon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
-        }
-      });
-    }
+
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
     if (els.exportCsvBtn) els.exportCsvBtn.addEventListener('click', exportCsv);
     if (els.stressToggle) {
