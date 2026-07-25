@@ -693,15 +693,22 @@
     </div>
 
     <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
-      <div class="troubleshoot-head">
-        <h3 class="troubleshoot-title"><span data-i18n="troubleshootTitle">💡 連線品質不佳排障指引</span></h3>
-        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;">建議檢查步驟</span>
+      <div class="troubleshoot-head" id="troubleshootHead" style="cursor: pointer; user-select: none;">
+        <h3 class="troubleshoot-title">
+          <span id="troubleshootToggleIcon" style="font-size: 0.75rem; display: inline-block; transition: transform 0.2s;">▶</span>
+          <span data-i18n="troubleshootTitle">💡 連線品質不佳排障指引</span>
+        </h3>
+        <span id="troubleshootStatusTag" class="metric-tag" style="background:#fee2e2; color:#991b1b;" data-i18n="troubleshootStatusTag">點擊展開檢查步驟</span>
       </div>
-      <ol class="troubleshoot-steps">
-        <li><strong data-i18n="troubleshootStep1Title">1. 確認目標網站</strong>：<span data-i18n="troubleshootStep1Desc">評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。</span></li>
-        <li><strong data-i18n="troubleshootStep2Title">2. 點擊「還原預設」對照</strong>：<span data-i18n="troubleshootStep2Desc">點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。</span></li>
-        <li><strong data-i18n="troubleshootStep3Title">3. 檢查本機網路連線</strong>：<span data-i18n="troubleshootStep3Desc">若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。</span></li>
-      </ol>
+      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 10px 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
+      </div>
+      <div id="troubleshootDetails" style="display: none;">
+        <ol class="troubleshoot-steps">
+          <li><strong data-i18n="troubleshootStep1Title">1. 確認目標網站</strong>：<span data-i18n="troubleshootStep1Desc">評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。</span></li>
+          <li><strong data-i18n="troubleshootStep2Title">2. 點擊「還原預設」對照</strong>：<span data-i18n="troubleshootStep2Desc">點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。</span></li>
+          <li><strong data-i18n="troubleshootStep3Title">3. 檢查本機網路連線</strong>：<span data-i18n="troubleshootStep3Desc">若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。</span></li>
+        </ol>
+      </div>
     </div>
 
     <main class="workspace-grid">
@@ -959,12 +966,16 @@
         crossRefSingle: '⚠️ 特定目標連線異常 (本機 Internet 正常)',
         crossRefBroad: '⚠️ 廣泛連線異常 (可能為 Wi-Fi/ISP 障礙)',
         troubleshootTitle: '💡 連線品質不佳排障指引',
+        troubleshootStatusTag: '點擊展開對照分析與步驟',
         troubleshootStep1Title: '1. 確認目標網站',
         troubleshootStep1Desc: '評級顯示連至該網站不順暢，可能是該網站伺服器暫時繁忙或正在維護中。',
         troubleshootStep2Title: '2. 點擊「還原預設」對照',
         troubleshootStep2Desc: '點擊右上角「還原預設」。若連至其它網站正常，代表僅為該網站單點問題。',
         troubleshootStep3Title: '3. 檢查本機網路連線',
         troubleshootStep3Desc: '若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。',
+        reasonPrimaryFail: '💡 主要目標 ({primary}) 無法連線，但備用目標 ({fallback}) 連線正常。這代表您本機網路完全正常，可能是該網站伺服器異常或維護中，建議聯繫該網站管理員。',
+        reasonSameDomain: '⚠️ 主要目標 ({primary}) 與備用目標 ({fallback}) 皆無法連線，且兩者屬於相同網域。這代表可能為該網站伺服器或其資料中心網路異常，請聯繫該網站管理員。',
+        reasonDiffDomain: '🚨 主要目標 ({primary}) 與備用目標 ({fallback}) 皆無法連線，且兩者屬於不同網域。這代表極可能是您本機的電腦網路、Wi-Fi 或 ISP 網路本身出現問題。',
         toastWebhookSent: '已完成自動 Webhook 數據回傳',
         toastWebhookFailed: 'Webhook 數據回傳失敗 (請檢查 CORS 或網路)',
         exportJsonDone: 'JSON 報告已下載。',
@@ -1062,12 +1073,16 @@
         crossRefSingle: '⚠️ Target-Specific Issue (Internet OK)',
         crossRefBroad: '⚠️ Broad Network Issue (Possible Wi-Fi/ISP Problem)',
         troubleshootTitle: '💡 Troubleshooting Guide',
+        troubleshootStatusTag: 'Click to expand steps',
         troubleshootStep1Title: '1. Check Target Website',
         troubleshootStep1Desc: 'Connection to this website is slow or unreachable. The target server may be temporarily busy or under maintenance.',
         troubleshootStep2Title: '2. Click "Reset Defaults" to Compare',
         troubleshootStep2Desc: 'Click "Reset Defaults". If other websites work fine, the issue is isolated to this specific target.',
         troubleshootStep3Title: '3. Check Local Network & Wi-Fi',
         troubleshootStep3Desc: 'If all websites fail, try reconnecting your Wi-Fi, replugging network cable, or contacting IT support.',
+        reasonPrimaryFail: '💡 Primary target ({primary}) is unreachable, but fallback endpoint ({fallback}) works fine. Your local network is fully functional. The target website may be down or under maintenance; contact its administrator.',
+        reasonSameDomain: '⚠️ Both primary target ({primary}) and fallback endpoint ({fallback}) under the same domain are unreachable. The website server or datacenter network may be malfunctioning; contact its administrator.',
+        reasonDiffDomain: '🚨 Both primary target ({primary}) and fallback endpoint ({fallback}) under different domains are unreachable. Your local Wi-Fi, computer network, or ISP connection is likely down.',
         toastWebhookSent: 'Webhook report sent successfully',
         toastWebhookFailed: 'Failed to send Webhook report (Check CORS/network)',
         exportJsonDone: 'JSON report downloaded.',
@@ -1096,7 +1111,7 @@
       }
     };
 
-    const APP_VERSION = 'v1.0.13-rc';
+    const APP_VERSION = 'v1.0.14-rc';
 
     // ── Client info: OS/Browser + Timezone ──────────────────────────────
     function detectClientInfo() {
@@ -1975,20 +1990,41 @@
         const isPoor = grade.grade === 'C' || grade.grade === 'F' || (stats.sentRecent >= 10 && stats.loss > 10.0);
         troubleshootCard.style.display = isPoor ? 'block' : 'none';
 
-        if (crossRefBadge) {
-          if (isPoor) {
-            const isFailoverSwitched = state.activeEndpointIndex > 0;
-            crossRefBadge.style.display = 'inline-flex';
+        if (isPoor) {
+          const isFailoverSwitched = state.activeEndpointIndex > 0;
+          let primaryHost = '—', fallbackHost = '—';
+          try { primaryHost = new URL(state.settings.endpoint).hostname; } catch {}
+          try { fallbackHost = new URL(state.settings.fallbackEndpoint).hostname; } catch {}
+
+          const primaryDomain = getBaseDomain(primaryHost);
+          const fallbackDomain = getBaseDomain(fallbackHost);
+          const isSameDomain = primaryDomain && fallbackDomain && primaryDomain === fallbackDomain;
+
+          const reasonEl = $('troubleshootDynamicReason');
+          if (reasonEl) {
             if (isFailoverSwitched) {
+              if (isSameDomain) {
+                reasonEl.textContent = t('reasonSameDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
+              } else {
+                reasonEl.textContent = t('reasonDiffDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
+              }
+            } else {
+              reasonEl.textContent = t('reasonPrimaryFail').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
+            }
+          }
+
+          if (crossRefBadge) {
+            crossRefBadge.style.display = 'inline-flex';
+            if (isFailoverSwitched && !isSameDomain) {
               crossRefBadge.className = 'scope-badge broad';
               crossRefBadge.textContent = t('crossRefBroad');
             } else {
               crossRefBadge.className = 'scope-badge single';
               crossRefBadge.textContent = t('crossRefSingle');
             }
-          } else {
-            crossRefBadge.style.display = 'none';
           }
+        } else {
+          if (crossRefBadge) crossRefBadge.style.display = 'none';
         }
       }
       const previous = stats.valid.at(-2)?.latency;
@@ -2595,6 +2631,18 @@
       els.logHead.addEventListener('click', (e) => {
         if (e.target && (e.target.id === 'clearLogBtn' || e.target.closest('#clearLogBtn'))) return;
         toggleLogCollapse();
+      });
+    }
+    const troubleshootHead = $('troubleshootHead');
+    const troubleshootDetails = $('troubleshootDetails');
+    const troubleshootToggleIcon = $('troubleshootToggleIcon');
+    if (troubleshootHead && troubleshootDetails) {
+      troubleshootHead.addEventListener('click', () => {
+        const isHidden = troubleshootDetails.style.display === 'none';
+        troubleshootDetails.style.display = isHidden ? 'block' : 'none';
+        if (troubleshootToggleIcon) {
+          troubleshootToggleIcon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+        }
       });
     }
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
