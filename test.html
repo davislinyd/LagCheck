@@ -1502,26 +1502,6 @@
 
     fetchTraceInfo();
 
-    function clampNumber(value, min, max, fallback) {
-      const n = Number(value);
-      return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
-    }
-
-    function normalizeUrl(raw, fallback) {
-      try {
-        let str = String(raw || '').trim();
-        if (!str) return fallback;
-        if (!/^https?:\/\//i.test(str)) {
-          str = `https://${str}`;
-        }
-        const url = new URL(str);
-        if (!['http:', 'https:'].includes(url.protocol)) throw new Error('unsupported protocol');
-        return url.toString();
-      } catch {
-        return fallback;
-      }
-    }
-
     function updateSettingsFromInputs() {
       const epVal = els.endpointInput ? els.endpointInput.value : '';
       const fepVal = els.fallbackEndpointInput ? els.fallbackEndpointInput.value : '';
@@ -1545,18 +1525,11 @@
       state.settings = { ...DEFAULTS };
       state.activeEndpointIndex = 0;
       state.consecutiveFailures = 0;
-      els.endpointInput.value = state.settings.endpoint;
-      els.fallbackEndpointInput.value = state.settings.fallbackEndpoint;
-      els.downloadInput.value = state.settings.downloadUrl;
-      els.intervalInput.value = state.settings.intervalMs;
-      els.timeoutInput.value = state.settings.timeoutMs;
-      els.failoverThresholdInput.value = state.settings.failoverThreshold;
-      els.percentileNInput.value = state.settings.percentileN;
-      if (els.autoStopSelect) els.autoStopSelect.value = String(state.settings.autoStopMin);
+      syncInputsFromState();
       persist();
       updateUI({ skipChart: true });
       if (state.chartMode === 'percentile') rebuildPercentileChart();
-      showToast(t('toastResetDefaults'));
+      toast(t('toastResetDefaults'));
     }
 
     function localeTag() { return state.lang === 'zh' ? 'zh-TW' : 'en-US'; }
@@ -2681,19 +2654,21 @@
       });
     }
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
-    els.exportCsvBtn.addEventListener('click', exportCsv);
-    els.stressToggle.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        const ok = window.confirm(t('stressWarningConfirm'));
-        if (ok) {
-          if (state.running) startStress();
+    if (els.exportCsvBtn) els.exportCsvBtn.addEventListener('click', exportCsv);
+    if (els.stressToggle) {
+      els.stressToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          const ok = window.confirm(t('stressWarningConfirm'));
+          if (ok) {
+            if (state.running) startStress();
+          } else {
+            e.target.checked = false;
+          }
         } else {
-          e.target.checked = false;
+          pauseStress();
         }
-      } else {
-        pauseStress();
-      }
-    });
+      });
+    }
     [els.endpointInput, els.fallbackEndpointInput, els.downloadInput, els.intervalInput, els.timeoutInput, els.failoverThresholdInput, els.percentileNInput, els.autoStopSelect]
       .filter(Boolean)
       .forEach((input) => input.addEventListener('change', () => {
