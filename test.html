@@ -2644,14 +2644,14 @@
       }
     });
 
-    els.modeLiveBtn.addEventListener('click', () => setChartMode('live'));
-    els.modePercentileBtn.addEventListener('click', () => setChartMode('percentile'));
-    els.langToggle.addEventListener('click', () => setLanguage(state.lang === 'zh' ? 'en' : 'zh'));
-    els.startBtn.addEventListener('click', start);
-    els.pauseBtn.addEventListener('click', pause);
-    els.resetBtn.addEventListener('click', reset);
-    if (els.resetSettingsBtn) els.resetSettingsBtn.addEventListener('click', resetSettingsToDefault);
-    els.clearLogBtn.addEventListener('click', () => { state.eventLog = []; renderLog(); });
+    if (els.modeLiveBtn) els.modeLiveBtn.onclick = () => setChartMode('live');
+    if (els.modePercentileBtn) els.modePercentileBtn.onclick = () => setChartMode('percentile');
+    if (els.langToggle) els.langToggle.onclick = () => setLanguage(state.lang === 'zh' ? 'en' : 'zh');
+    if (els.startBtn) els.startBtn.onclick = start;
+    if (els.pauseBtn) els.pauseBtn.onclick = pause;
+    if (els.resetBtn) els.resetBtn.onclick = reset;
+    if (els.resetSettingsBtn) els.resetSettingsBtn.onclick = resetSettingsToDefault;
+    if (els.clearLogBtn) els.clearLogBtn.onclick = () => { state.eventLog = []; renderLog(); };
     function toggleLogCollapse() {
       const logCard = els.eventLog ? els.eventLog.closest('.log-card') : null;
       if (!logCard) return;
