@@ -1206,6 +1206,7 @@
       netTraceInfo: { ip: '—', colo: '—', loc: '—' },
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
       underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0, fallbackSuccessCount: 0,
+      primaryFailed: false, fallbackFailed: false,
       settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined',
       autoStartFromUrl: false, autoStressFromUrl: false, autoExportFormats: [], autoWebhookUrl: null, autoTriggered: false
     };
@@ -1998,11 +1999,13 @@
 
           // 判斷備用端點是否已累積驗證成功達 3 次
           const fallbackCount = state.fallbackSuccessCount || 0;
+          const fallbackVerified = isFailoverSwitched && currentIsOk && fallbackCount >= 3;
           const fallbackVerifying = isFailoverSwitched && currentIsOk && fallbackCount < 3;
+          const bothFailed = (state.primaryFailed && state.fallbackFailed) || (isFailoverSwitched && !currentIsOk);
 
           const reasonEl = $('troubleshootDynamicReason');
           if (reasonEl) {
-            if (isFailoverSwitched && !currentIsOk && state.consecutiveFailures > 0) {
+            if (bothFailed || (state.primaryFailed && !fallbackVerified && !fallbackVerifying)) {
               if (isSameDomain) {
                 reasonEl.textContent = t('reasonSameDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
               } else {
@@ -2184,6 +2187,11 @@
 
         const threshold = state.settings.failoverThreshold || DEFAULTS.failoverThreshold;
         if (state.consecutiveFailures >= threshold) {
+          if (state.activeEndpointIndex === 0) {
+            state.primaryFailed = true;
+          } else {
+            state.fallbackFailed = true;
+          }
           state.activeEndpointIndex = state.activeEndpointIndex === 0 ? 1 : 0;
           state.consecutiveFailures = 0;
           state.fallbackSuccessCount = 0;
@@ -2207,14 +2215,19 @@
     }
 
     function recordSample({ status, latency, error }) {
-      if (state.activeEndpointIndex > 0) {
+      if (state.activeEndpointIndex === 0) {
         if (status === 'ok') {
+          state.primaryFailed = false;
+        }
+        state.fallbackSuccessCount = 0;
+      } else {
+        if (status === 'ok') {
+          state.fallbackFailed = false;
           state.fallbackSuccessCount = (state.fallbackSuccessCount || 0) + 1;
         } else {
+          state.fallbackFailed = true;
           state.fallbackSuccessCount = 0;
         }
-      } else {
-        state.fallbackSuccessCount = 0;
       }
       const previousLatency = state.lastLatency;
       let jitter = 0;
@@ -2316,7 +2329,7 @@
       Object.assign(state, {
         running: false, sent: 0, failed: 0, samples: [], eventLog: [], recentDiffs: [],
         chartTimestamps: [], lastLatency: null, idleBaseline: null, underLoadAvg: null, gradeState: null,
-        activeEndpointIndex: 0, consecutiveFailures: 0
+        activeEndpointIndex: 0, consecutiveFailures: 0, fallbackSuccessCount: 0, primaryFailed: false, fallbackFailed: false
       });
       clearChart();
       renderLog();
