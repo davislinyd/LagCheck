@@ -968,6 +968,7 @@
         troubleshootStep3Title: '3. 檢查本機網路連線',
         troubleshootStep3Desc: '若連至所有網站都卡頓，建議重新連接 Wi-Fi、重新插拔網路線或聯繫 IT 網管人員。',
         reasonPrimaryFail: '💡 主要目標 ({primary}) 無法連線，但備用目標 ({fallback}) 連線正常。這代表您本機網路完全正常，可能是該網站伺服器異常或維護中，建議聯繫該網站管理員。',
+        reasonFallbackVerifying: '🔄 主要目標 ({primary}) 連線失敗，已自動切換至備用目標 ({fallback})，正在驗證連線穩定度 ({count}/3)...',
         reasonSameDomain: '⚠️ 主要目標 ({primary}) 與備用目標 ({fallback}) 皆無法連線，且兩者屬於相同網域。這代表可能為該網站伺服器或其資料中心網路異常，請聯繫該網站管理員。',
         reasonDiffDomain: '🚨 主要目標 ({primary}) 與備用目標 ({fallback}) 皆無法連線，且兩者屬於不同網域。這代表極可能是您本機的電腦網路、Wi-Fi 或 ISP 網路本身出現問題。',
         toastWebhookSent: '已完成自動 Webhook 數據回傳',
@@ -1077,6 +1078,7 @@
         troubleshootStep3Title: '3. Check Local Network & Wi-Fi',
         troubleshootStep3Desc: 'If all websites fail, try reconnecting your Wi-Fi, replugging network cable, or contacting IT support.',
         reasonPrimaryFail: '💡 Primary target ({primary}) is unreachable, but fallback endpoint ({fallback}) works fine. Your local network is fully functional. The target website may be down or under maintenance; contact its administrator.',
+        reasonFallbackVerifying: '🔄 Primary endpoint ({primary}) unreachable. Switched to fallback ({fallback}), verifying connection stability ({count}/3)...',
         reasonSameDomain: '⚠️ Both primary target ({primary}) and fallback endpoint ({fallback}) under the same domain are unreachable. The website server or datacenter network may be malfunctioning; contact its administrator.',
         reasonDiffDomain: '🚨 Both primary target ({primary}) and fallback endpoint ({fallback}) under different domains are unreachable. Your local Wi-Fi, computer network, or ISP connection is likely down.',
         toastWebhookSent: 'Webhook report sent successfully',
@@ -1203,7 +1205,7 @@
       startTime: null, sent: 0, failed: 0, samples: [], eventLog: [],
       netTraceInfo: { ip: '—', colo: '—', loc: '—' },
       recentDiffs: [], chartTimestamps: [], lastLatency: null, idleBaseline: null,
-      underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0,
+      underLoadAvg: null, gradeState: null, activeEndpointIndex: 0, consecutiveFailures: 0, fallbackSuccessCount: 0,
       settings: { ...DEFAULTS }, chartReady: typeof Chart !== 'undefined',
       autoStartFromUrl: false, autoStressFromUrl: false, autoExportFormats: [], autoWebhookUrl: null, autoTriggered: false
     };
@@ -1994,17 +1996,23 @@
           const fallbackDomain = getBaseDomain(fallbackHost);
           const isSameDomain = primaryDomain && fallbackDomain && primaryDomain === fallbackDomain;
 
-          // 判斷備用端點是否正成功連線
-          const fallbackWorking = isFailoverSwitched && (currentIsOk || state.consecutiveFailures === 0);
+          // 判斷備用端點是否已累積驗證成功達 3 次
+          const fallbackCount = state.fallbackSuccessCount || 0;
+          const fallbackVerifying = isFailoverSwitched && currentIsOk && fallbackCount < 3;
 
           const reasonEl = $('troubleshootDynamicReason');
           if (reasonEl) {
-            if (isFailoverSwitched && !fallbackWorking) {
+            if (isFailoverSwitched && !currentIsOk && state.consecutiveFailures > 0) {
               if (isSameDomain) {
                 reasonEl.textContent = t('reasonSameDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
               } else {
                 reasonEl.textContent = t('reasonDiffDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
               }
+            } else if (fallbackVerifying) {
+              reasonEl.textContent = t('reasonFallbackVerifying')
+                .replace('{primary}', primaryHost)
+                .replace('{fallback}', fallbackHost)
+                .replace('{count}', String(fallbackCount));
             } else {
               reasonEl.textContent = t('reasonPrimaryFail').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
             }
@@ -2178,6 +2186,7 @@
         if (state.consecutiveFailures >= threshold) {
           state.activeEndpointIndex = state.activeEndpointIndex === 0 ? 1 : 0;
           state.consecutiveFailures = 0;
+          state.fallbackSuccessCount = 0;
           let targetHost = 'Backup Endpoint';
           try { targetHost = new URL(getActiveProbeUrl()).hostname; } catch {}
           addLog('info', 'log_failoverSwitched', { host: targetHost });
@@ -2198,6 +2207,15 @@
     }
 
     function recordSample({ status, latency, error }) {
+      if (state.activeEndpointIndex > 0) {
+        if (status === 'ok') {
+          state.fallbackSuccessCount = (state.fallbackSuccessCount || 0) + 1;
+        } else {
+          state.fallbackSuccessCount = 0;
+        }
+      } else {
+        state.fallbackSuccessCount = 0;
+      }
       const previousLatency = state.lastLatency;
       let jitter = 0;
       let diff = 0;
