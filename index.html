@@ -2542,15 +2542,26 @@
       }
     }
 
-    function exportJson(customPayload = null) {
-      const payload = customPayload || {
+    function buildExportPayload() {
+      const statsObj = currentStats();
+      const gradeObj = gradeFor(statsObj);
+      return {
         timestamp: new Date().toISOString(),
         version: APP_VERSION,
         clientInfo: state.netTraceInfo,
         settings: state.settings,
-        stats: currentStats(),
+        stats: {
+          ...statsObj,
+          grade: gradeObj.grade,
+          score: gradeObj.score,
+          gradeLabel: gradeObj.label
+        },
         samples: state.samples
       };
+    }
+
+    function exportJson(customPayload = null) {
+      const payload = customPayload || buildExportPayload();
       const jsonStr = JSON.stringify(payload, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -2568,14 +2579,7 @@
       if (state.autoTriggered) return;
       state.autoTriggered = true;
 
-      const payload = {
-        timestamp: new Date().toISOString(),
-        version: APP_VERSION,
-        clientInfo: state.netTraceInfo,
-        settings: state.settings,
-        stats: currentStats(),
-        samples: state.samples
-      };
+      const payload = buildExportPayload();
 
       const formats = state.autoExportFormats || [];
       const isAll = formats.includes('all');

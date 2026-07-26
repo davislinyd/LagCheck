@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LagCheck 規劃檔: lagcheck_auto.py 與 index.html 同步更新計畫</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --code-bg: #090d16;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 24px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin: 0 0 8px 0;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 1.3rem;
+      color: var(--text);
+      margin-top: 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-top: 16px;
+    }
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background-color: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+    .diff-add { color: var(--success); }
+    .diff-del { color: var(--danger); }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+    }
+    .alert-info {
+      background-color: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--primary);
+      color: #7dd3fc;
+    }
+    .alert-warning {
+      background-color: rgba(251, 191, 36, 0.1);
+      border: 1px solid var(--warning);
+      color: #fde047;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>LagCheck 自動化腳本更新規劃檔</h1>
+      <div class="subtitle">同步修訂 <code>lagcheck_auto.py</code>、<code>index.html</code> 與 <code>test.html</code> 的 JSON 匯出及解析邏輯</div>
+    </header>
+
+    <div class="card">
+      <h2>1. 問題分析與修訂目標 (Goal)</h2>
+      <p>經過比對最新版 <code>index.html</code> 的 URL Automation Engine 與 JSON 匯出機制，發現 <code>lagcheck_auto.py</code> 有以下需要調整與優化之處：</p>
+      <ul>
+        <li><strong>綜合評級 (Grade) 顯示 N/A 修正</strong>：<code>index.html</code> 在匯出 JSON (<code>exportJson</code>) 時，未將 <code>gradeFor(stats)</code> 計算出的評級資訊寫入 JSON Payload 的 <code>stats</code> 物件，導致 Python 腳本讀取 <code>stats.get('grade')</code> 時皆回應 <code>N/A</code>。</li>
+        <li><strong>P50 中位數欄位提取錯誤</strong>：Python 腳本原為 <code>stats.get('current', stats.get('p50'))</code>，會優先拿單次最新延遲 (current) 替代 P50，應調整為優先取 <code>p50</code>。</li>
+        <li><strong>測試環境與目標網址彈性 (Env Support)</strong>：現行 Python 腳本硬編碼指向 <code>test.html</code>。新增 CLI 參數 <code>--env</code> (<code>staging</code> / <code>prod</code> / <code>local</code>) 或 <code>--page-url</code>，讓使用者可切換測試正式版、測試版或本機 Web 伺服器。</li>
+        <li><strong>雙軌發布同步 (Dual-track Sync)</strong>：修改 <code>index.html</code> 的 JSON 匯出邏輯後，同步複製覆蓋至 <code>test.html</code>，維護專案雙軌發布規範。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>2. 變更細節與代碼比對 (Proposed Changes)</h2>
+
+      <h3>[MODIFY] index.html & test.html</h3>
+      <p>在 JSON Payload 產生處 (<code>exportJson</code> 與 <code>triggerAutoExportOrWebhook</code>)，將計算後的 <code>grade</code>, <code>score</code>, <code>gradeLabel</code> 自動併入 <code>stats</code> 匯出資料中：</p>
+      <pre><code>// 前後代碼對比 (index.html / test.html)
+<span class="diff-del">- const payload = customPayload || {</span>
+<span class="diff-del">-   timestamp: new Date().toISOString(),</span>
+<span class="diff-del">-   version: APP_VERSION,</span>
+<span class="diff-del">-   clientInfo: state.netTraceInfo,</span>
+<span class="diff-del">-   settings: state.settings,</span>
+<span class="diff-del">-   stats: currentStats(),</span>
+<span class="diff-del">-   samples: state.samples</span>
+<span class="diff-del">- };</span>
+
+<span class="diff-add">+ const statsObj = currentStats();</span>
+<span class="diff-add">+ const gradeObj = gradeFor(statsObj);</span>
+<span class="diff-add">+ const payload = customPayload || {</span>
+<span class="diff-add">+   timestamp: new Date().toISOString(),</span>
+<span class="diff-add">+   version: APP_VERSION,</span>
+<span class="diff-add">+   clientInfo: state.netTraceInfo,</span>
+<span class="diff-add">+   settings: state.settings,</span>
+<span class="diff-add">+   stats: {</span>
+<span class="diff-add">+     ...statsObj,</span>
+<span class="diff-add">+     grade: gradeObj.grade,</span>
+<span class="diff-add">+     score: gradeObj.score,</span>
+<span class="diff-add">+     gradeLabel: gradeObj.label</span>
+<span class="diff-add">+   },</span>
+<span class="diff-add">+   samples: state.samples</span>
+<span class="diff-add">+ };</span></code></pre>
+
+      <h3>[MODIFY] lagcheck_auto.py</h3>
+      <p>1. 新增 <code>--env</code> 與 <code>--page-url</code> 參數支援環境選擇：</p>
+      <pre><code><span class="diff-add">+ ENV_URLS = {</span>
+<span class="diff-add">+     "staging": "https://davislinyd.github.io/LagCheck/test.html",</span>
+<span class="diff-add">+     "prod": "https://davislinyd.github.io/LagCheck/",</span>
+<span class="diff-add">+     "local": "http://localhost:8000/test.html"</span>
+<span class="diff-add">+ }</span></code></pre>
+
+      <p>2. 修正 <code>parse_and_print_report</code> 之 P50 取值邏輯：</p>
+      <pre><code><span class="diff-del">- print(f"  • 中位數延遲 (P50)     : {stats.get('current', stats.get('p50', '—'))} ms")</span>
+<span class="diff-add">+ p50_val = stats.get('p50')</span>
+<span class="diff-add">+ if p50_val is None: p50_val = stats.get('current', '—')</span>
+<span class="diff-add">+ print(f"  • 中位數延遲 (P50)     : {p50_val} ms")</span></code></pre>
+    </div>
+
+    <div class="card">
+      <h2>3. 驗證計畫 (Verification Plan)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>驗證項目</th>
+            <th>驗證方式與指令</th>
+            <th>預期結果</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>HTML JavaScript 語法檢查</td>
+            <td><code>node -e "const fs = require('fs'); const html = fs.readFileSync('index.html', 'utf8'); const js = html.match(/&lt;script type=\"module\"&gt;([\s\S]*?)&lt;\/script&gt;/)[1]; new Function(js);"</code></td>
+            <td>命令執行無語法錯誤 (Exit code 0)</td>
+          </tr>
+          <tr>
+            <td>Python 腳本參數語法檢查</td>
+            <td><code>python3 -m py_compile lagcheck_auto.py</code></td>
+            <td>無語法錯誤並成功編譯</td>
+          </tr>
+          <tr>
+            <td>JSON 匯出結構欄位驗證</td>
+            <td>檢視手動/自動觸發匯出之 JSON 報告</td>
+            <td><code>stats</code> 物件內包含 <code>grade</code>, <code>score</code>, <code>gradeLabel</code> 欄位</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
