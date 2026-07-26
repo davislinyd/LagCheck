@@ -557,8 +557,8 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        min-height: 360px;
         height: auto;
+        min-height: auto;
         padding: 12px;
         background: var(--panel);
         border: 1px solid var(--line);
@@ -566,8 +566,8 @@
         box-shadow: var(--shadow);
         overflow: visible;
       }
-      .side-panel-card { display: flex; flex-direction: column; width: 100%; height: auto; }
-      .side-tab-content { width: 100%; min-height: 280px; overflow-y: visible; }
+      .side-panel-card { display: flex; flex-direction: column; width: 100%; height: auto; overflow: visible; }
+      .side-tab-content { width: 100%; height: auto; min-height: auto; overflow: visible; padding-bottom: 6px; }
     }
     @media (max-width: 760px) {
       .app { padding: 8px; gap: 8px; }
