@@ -2591,7 +2591,7 @@
       els.actionToast.textContent = `💡 ${message}`;
       els.actionToast.setAttribute('role', 'status');
       clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => { els.actionToast.textContent = ''; }, 2000);
+      toast._timer = setTimeout(() => { els.actionToast.textContent = ''; }, 800);
     }
 
     function openModal() {
