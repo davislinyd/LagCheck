@@ -795,12 +795,15 @@
                 <label id="fieldTimeout" class="field" data-tooltip="逾時門檻 (限制範圍: 1000 ~ 5000 ms)"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="1000" max="5000" step="100" /><span>ms</span></span></label>
                 <label id="fieldFailover" class="field" data-tooltip="失敗切換門檻 (限制範圍: 3 ~ 10 次)"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="3" max="10" step="1" /><span data-i18n="timesUnit">次</span></span></label>
                 <label id="fieldPercentileN" class="field" data-tooltip="Rolling window size for stats &amp; charts (Range: 30 ~ 500 pts)"><span class="field-label" data-i18n="percentileNLabel">Window Size (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="30" max="500" step="10" /><span data-i18n="sampleUnit">pts</span></span></label>
-                <label id="fieldAutoStop" class="field" style="grid-column: span 2;" data-tooltip="自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="3" selected data-i18n="autoStop3">3 分鐘</option><option value="1" data-i18n="autoStop1">1 分鐘</option><option value="2" data-i18n="autoStop2">2 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="10" data-i18n="autoStop10">10 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
+                <label id="fieldAutoStop" class="field" data-tooltip="自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="3" selected data-i18n="autoStop3">3 分鐘</option><option value="1" data-i18n="autoStop1">1 分鐘</option><option value="2" data-i18n="autoStop2">2 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="10" data-i18n="autoStop10">10 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
+                <label id="fieldStress" class="field" for="stressToggle" data-tooltip="背景下載會與延遲測量並行。">
+                  <span class="field-label" data-i18n="stressTitle">模擬下載速度</span>
+                  <div class="input" style="display:flex; align-items:center; justify-content:space-between; padding:0 8px; font-weight:700; background:#f8fafc; cursor:pointer;">
+                    <span style="font-size:11px; color:var(--soft);" data-i18n="stressToggleText">下載測試</span>
+                    <input id="stressToggle" type="checkbox" style="width:16px; height:16px; cursor:pointer;" />
+                  </div>
+                </label>
               </div>
-              <label id="stressToggleRow" class="toggle-row" for="stressToggle">
-                <span><span class="toggle-title" data-i18n="stressTitle">模擬下載速度</span><span id="stressHelp" class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
-                <input id="stressToggle" type="checkbox" />
-              </label>
               <div class="action-grid">
                 <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
                 <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
@@ -947,6 +950,7 @@
         failoverTooltip: '失敗切換門檻 (限制範圍: 3 ~ 10 次)',
         percentileNTooltip: '評級與圖表採用的最近 N 筆滾動樣本數 (限制: 30 ~ 500 筆)',
         autoStopTooltip: '自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)',
+        stressToggleTooltip: '背景下載會與延遲測量並行。',
         settingsBoundaryDesc: '💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。',
         autoStopLabel: '自動停止', autoStop1: '1 分鐘', autoStop2: '2 分鐘', autoStop3: '3 分鐘', autoStop5: '5 分鐘', autoStop10: '10 分鐘', autoStop30: '30 分鐘', autoStop60: '60 分鐘', autoStopNever: '無限制 (永遠執行)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
@@ -954,7 +958,7 @@
         settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
         activeEndpointLabel: '當前探測端點',
         endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '下載測試檔 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
-        stressTitle: '模擬下載速度', stressHelp: '背景下載會與延遲測量並行。',
+        stressTitle: '模擬下載速度', stressHelp: '背景下載會與延遲測量並行。', stressToggleText: '下載測試',
         exportScreenshot: '匯出/複製 截圖', exportCsv: '匯出 CSV', eventLogTitle: 'Log', collapse: '收合', expand: '展開',
         eventLogHelp: '尖峰、逾時、離線狀態會記錄在這裡。', clear: '清除',
         live: '即時監測', paused: '已暫停', offline: '離線', stress: '下載測試中', idle: '閒置', underLoad: '下載中',
@@ -1057,6 +1061,7 @@
         failoverTooltip: 'Failover Limit (Range: 3 ~ 10 fails)',
         percentileNTooltip: 'Rolling window size for stats & charts (Range: 30 ~ 500 pts)',
         autoStopTooltip: 'Auto-Stop (Limit: 1, 2, 3, 5, 10, 30, 60 min or unlimited)',
+        stressToggleTooltip: 'Background downloads run alongside latency measurement.',
         settingsBoundaryDesc: '💡 Input Limits: Interval (200~2000ms), Timeout (1000~5000ms), Failover (3~10 fails), Sample Size N (30~500 pts).',
         autoStopLabel: 'Auto-Stop', autoStop1: '1 Min', autoStop2: '2 Min', autoStop3: '3 Min', autoStop5: '5 Min', autoStop10: '10 Min', autoStop30: '30 Min', autoStop60: '60 Min', autoStopNever: 'Unlimited (Continuous)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
@@ -1064,7 +1069,7 @@
         settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
         activeEndpointLabel: 'Active Endpoint',
         endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Download Test URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
-        stressTitle: 'Simulate Download Speed', stressHelp: 'Background downloads run alongside latency measurement.',
+        stressTitle: 'Simulate Download Speed', stressHelp: 'Background downloads run alongside latency measurement.', stressToggleText: 'Download Test',
         exportScreenshot: 'Export/Copy PNG', exportCsv: 'Export CSV', eventLogTitle: 'Log', collapse: 'Collapse', expand: 'Expand',
         eventLogHelp: 'Spikes, timeouts, and offline state are recorded here.', clear: 'Clear',
         live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Download Test', idle: 'Idle', underLoad: 'Load',
@@ -1270,10 +1275,10 @@
       tabSettingsBtn: $('tabSettingsBtn'), tabLogBtn: $('tabLogBtn'), settingsTabContent: $('settingsTabContent'), logTabContent: $('logTabContent'),
       settingsHeaderActions: $('settingsHeaderActions'), logHeaderActions: $('logHeaderActions'),
       clientIpChip: $('clientIpChip'), clientNodeChip: $('clientNodeChip'), clientLocChip: $('clientLocChip'),
-      fieldInterval: $('fieldInterval'), fieldTimeout: $('fieldTimeout'), fieldFailover: $('fieldFailover'), fieldPercentileN: $('fieldPercentileN'), fieldAutoStop: $('fieldAutoStop'),
+      fieldInterval: $('fieldInterval'), fieldTimeout: $('fieldTimeout'), fieldFailover: $('fieldFailover'), fieldPercentileN: $('fieldPercentileN'), fieldAutoStop: $('fieldAutoStop'), fieldStress: $('fieldStress'),
       endpointInput: $('endpointInput'), fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
       timeoutInput: $('timeoutInput'), failoverThresholdInput: $('failoverThresholdInput'), percentileNInput: $('percentileNInput'), autoStopSelect: $('autoStopSelect'),
-      stressToggle: $('stressToggle'), stressToggleRow: $('stressToggleRow'), stressHelp: $('stressHelp'), exportScreenshotBtn: $('exportScreenshotBtn'), exportCsvBtn: $('exportCsvBtn'),
+      stressToggle: $('stressToggle'), exportScreenshotBtn: $('exportScreenshotBtn'), exportCsvBtn: $('exportCsvBtn'),
       actionToast: $('actionToast'), eventLog: $('eventLog'), chartTitle: $('chartTitle'), chartHelp: $('chartHelp'),
       modeLiveBtn: $('modeLiveBtn'), modePercentileBtn: $('modePercentileBtn'),
       chartMissing: $('chartMissing'), summaryStrip: document.querySelector('.summary-strip'), latencyChart: $('latencyChart')
@@ -1494,8 +1499,8 @@
       els.langToggle.textContent = lang === 'zh' ? 'EN' : '中';
       els.langToggle.setAttribute('aria-label', t('langToggleAria'));
       if (els.latencyChart) els.latencyChart.setAttribute('aria-label', t('chartAria'));
-      if (els.stressToggleRow) {
-        els.stressToggleRow.setAttribute('data-tooltip', t('stressToggleTooltip'));
+      if (els.fieldStress) {
+        els.fieldStress.setAttribute('data-tooltip', t('stressToggleTooltip'));
       }
       if (els.fieldInterval) els.fieldInterval.setAttribute('data-tooltip', t('intervalTooltip'));
       if (els.fieldTimeout) els.fieldTimeout.setAttribute('data-tooltip', t('timeoutTooltip'));
@@ -2103,9 +2108,9 @@
       inputsToToggle.filter(Boolean).forEach((el) => {
         el.disabled = state.running;
       });
-      if (els.stressToggleRow) {
-        els.stressToggleRow.style.opacity = state.running ? '0.6' : '1';
-        els.stressToggleRow.style.pointerEvents = state.running ? 'none' : 'auto';
+      if (els.fieldStress) {
+        els.fieldStress.style.opacity = state.running ? '0.6' : '1';
+        els.fieldStress.style.pointerEvents = state.running ? 'none' : 'auto';
       }
 
       if (els.stressHelp) {
