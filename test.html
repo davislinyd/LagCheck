@@ -50,16 +50,26 @@
       gap: 10px;
     }
     .topbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
-      align-items: center;
-      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 14px 8px 14px;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: var(--panel);
       box-shadow: var(--shadow);
-      min-height: 74px;
+    }
+    .topbar-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .topbar-divider {
+      height: 1px;
+      background: var(--line-soft);
+      margin: 2px 0;
+      width: 100%;
     }
     .brand-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .logo {
@@ -254,12 +264,12 @@
     .summary-strip {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
       overflow: hidden;
-      min-height: 104px;
+      min-height: 98px;
     }
     .metric-card {
       min-height: 104px;
@@ -645,29 +655,56 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="brand-row">
-        <div class="logo">🐢</div>
-        <div>
-          <div class="title-row">
-            <h1>LagCheck</h1>
-            <span class="version" id="appVersion" title="Version">v1.0.13-rc</span>
-          </div>
-          <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合辦公室作業與倉庫物流診斷。</p>
-          <div class="client-info">
-             <span id="clientOsChip" class="client-chip"><span class="chip-icon">🖥️</span> <span id="clientOs" class="chip-val">—</span></span>
-             <span id="clientTzChip" class="client-chip"><span class="chip-icon">🕐</span> <span id="clientTz" class="chip-val">—</span></span>
-             <span id="clientIpChip" class="client-chip" data-tooltip="您的對外連線出口 IP 地址"><span class="chip-icon">🌐</span> <span class="chip-label">IP:</span> <span id="clientIp" class="chip-val">—</span></span>
-             <span id="clientNodeChip" class="client-chip" data-tooltip="CDN 邊緣伺服器節點代碼 (例: TPE = 台北)"><span class="chip-icon">📍</span> <span class="chip-label">Node:</span> <span id="clientColo" class="chip-val">—</span></span>
-             <span id="clientLocChip" class="client-chip" data-tooltip="網路連線出口國家/地區 (例: TW = 台灣)"><span class="chip-icon">🚩</span> <span class="chip-label">Loc:</span> <span id="clientLoc" class="chip-val">—</span></span>
+      <div class="topbar-header">
+        <div class="brand-row">
+          <div class="logo">🐢</div>
+          <div>
+            <div class="title-row">
+              <h1>LagCheck</h1>
+              <span class="version" id="appVersion" title="Version">v1.0.13-rc</span>
+            </div>
+            <p class="subtitle" data-i18n="subtitle">即時監測連線延遲、抖動、失敗／逾時率與壅塞延遲，適合辦公室作業與倉庫物流診斷。</p>
+            <div class="client-info">
+               <span id="clientOsChip" class="client-chip"><span class="chip-icon">🖥️</span> <span id="clientOs" class="chip-val">—</span></span>
+               <span id="clientTzChip" class="client-chip"><span class="chip-icon">🕐</span> <span id="clientTz" class="chip-val">—</span></span>
+               <span id="clientIpChip" class="client-chip" data-tooltip="您的對外連線出口 IP 地址"><span class="chip-icon">🌐</span> <span class="chip-label">IP:</span> <span id="clientIp" class="chip-val">—</span></span>
+               <span id="clientNodeChip" class="client-chip" data-tooltip="CDN 邊緣伺服器節點代碼 (例: TPE = 台北)"><span class="chip-icon">📍</span> <span class="chip-label">Node:</span> <span id="clientColo" class="chip-val">—</span></span>
+               <span id="clientLocChip" class="client-chip" data-tooltip="網路連線出口國家/地區 (例: TW = 台灣)"><span class="chip-icon">🚩</span> <span class="chip-label">Loc:</span> <span id="clientLoc" class="chip-val">—</span></span>
+            </div>
           </div>
         </div>
+        <div class="top-actions">
+          <button id="helpBtn" class="help-toggle" type="button" aria-label="Help and Grading Guide" title="Help Guide">❓ <span data-i18n="helpBtnText">說明</span></button>
+          <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+          <div id="statusPill" class="status-pill" role="status" aria-live="polite" aria-atomic="true"><span id="statusDot" class="status-dot" aria-hidden="true"></span><span id="statusText">已暫停</span></div>
+          <div id="gradeBadge" class="grade-box" role="status" aria-live="polite" aria-atomic="true"><div class="grade-caption" data-i18n="gradeLabel">評級</div><div id="gradeText" class="grade-value">—</div></div>
+        </div>
       </div>
-      <div class="top-actions">
-        <button id="helpBtn" class="help-toggle" type="button" aria-label="Help and Grading Guide" title="Help Guide">❓ <span data-i18n="helpBtnText">說明</span></button>
-        <button id="langToggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
-        <div id="statusPill" class="status-pill" role="status" aria-live="polite" aria-atomic="true"><span id="statusDot" class="status-dot" aria-hidden="true"></span><span id="statusText">已暫停</span></div>
-        <div id="gradeBadge" class="grade-box" role="status" aria-live="polite" aria-atomic="true"><div class="grade-caption" data-i18n="gradeLabel">評級</div><div id="gradeText" class="grade-value">—</div></div>
-      </div>
+
+      <div class="topbar-divider"></div>
+
+      <section class="summary-strip" aria-label="Metrics" data-i18n-aria="metricsAria">
+        <article class="metric-card">
+          <div class="metric-head"><p class="metric-title" data-i18n="currentLatency">目前連線延遲</p><span id="latencyTrend" class="metric-tag">—</span></div>
+          <div class="metric-value"><span id="currentLatency" class="metric-number">—</span><span class="unit">ms</span></div>
+          <div class="metric-foot"><span data-i18n="avgShort">平均</span> <span id="avgLatency">—</span> · <span data-i18n="minShort">最低</span> <span id="minLatency">—</span> · <span data-i18n="maxShort">最高</span> <span id="maxLatency">—</span></div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-head"><p class="metric-title" data-i18n="jitterTitle">抖動</p><span class="metric-tag" data-i18n="windowTag">20 筆</span></div>
+          <div class="metric-value"><span id="jitter" class="metric-number">—</span><span class="unit">ms</span></div>
+          <div class="metric-foot" data-i18n="jitterHelp">相鄰兩次延遲差值的滾動平均。</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-head"><p class="metric-title" data-i18n="lossTitle">失敗／逾時率</p><span id="requestCount" class="metric-tag">0 次</span></div>
+          <div class="metric-value"><span id="lossRate" class="metric-number">0.0</span><span class="unit">%</span></div>
+          <div class="metric-foot"><span id="failCount">0</span> <span data-i18n="failedSuffix">次失敗或逾時</span></div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-head"><p class="metric-title" data-i18n="maxSpikeTitle">最大尖峰</p><span id="stressState" class="metric-tag">閒置</span></div>
+          <div class="metric-value"><span id="maxSpike" class="metric-number">—</span><span class="unit">ms</span></div>
+          <div class="metric-foot"><span data-i18n="bufferDeltaLabel">壅塞延遲差</span> <span id="bufferbloatDelta">—</span></div>
+        </article>
+      </section>
     </header>
 
     <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
@@ -681,29 +718,6 @@
     </div>
 
     <div id="chartMissing" class="cdn-banner" role="alert" data-i18n="chartMissing">圖表函式庫載入失敗，曲線無法顯示。請檢查網路或 CDN 連線後重新整理。</div>
-
-    <section class="summary-strip" aria-label="Metrics" data-i18n-aria="metricsAria">
-      <article class="metric-card">
-        <div class="metric-head"><p class="metric-title" data-i18n="currentLatency">目前連線延遲</p><span id="latencyTrend" class="metric-tag">—</span></div>
-        <div class="metric-value"><span id="currentLatency" class="metric-number">—</span><span class="unit">ms</span></div>
-        <div class="metric-foot"><span data-i18n="avgShort">平均</span> <span id="avgLatency">—</span> · <span data-i18n="minShort">最低</span> <span id="minLatency">—</span> · <span data-i18n="maxShort">最高</span> <span id="maxLatency">—</span></div>
-      </article>
-      <article class="metric-card">
-        <div class="metric-head"><p class="metric-title" data-i18n="jitterTitle">抖動</p><span class="metric-tag" data-i18n="windowTag">20 筆</span></div>
-        <div class="metric-value"><span id="jitter" class="metric-number">—</span><span class="unit">ms</span></div>
-        <div class="metric-foot" data-i18n="jitterHelp">相鄰兩次延遲差值的滾動平均。</div>
-      </article>
-      <article class="metric-card">
-        <div class="metric-head"><p class="metric-title" data-i18n="lossTitle">失敗／逾時率</p><span id="requestCount" class="metric-tag">0 次</span></div>
-        <div class="metric-value"><span id="lossRate" class="metric-number">0.0</span><span class="unit">%</span></div>
-        <div class="metric-foot"><span id="failCount">0</span> <span data-i18n="failedSuffix">次失敗或逾時</span></div>
-      </article>
-      <article class="metric-card">
-        <div class="metric-head"><p class="metric-title" data-i18n="maxSpikeTitle">最大尖峰</p><span id="stressState" class="metric-tag">閒置</span></div>
-        <div class="metric-value"><span id="maxSpike" class="metric-number">—</span><span class="unit">ms</span></div>
-        <div class="metric-foot"><span data-i18n="bufferDeltaLabel">壅塞延遲差</span> <span id="bufferbloatDelta">—</span></div>
-      </article>
-    </section>
 
     <main class="workspace-grid">
       <section class="chart-panel">
