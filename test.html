@@ -349,13 +349,37 @@
       background: #ffffff;
       box-shadow: 0 2px 6px rgba(15, 23, 42, .08);
     }
-    .side-panel { display: grid; grid-template-rows: minmax(0, 1.2fr) minmax(100px, 0.8fr); gap: 0; padding: 0; overflow: hidden; }
-    .settings-card, .log-card { min-width: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-    .settings-card { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); overflow-x: hidden !important; overflow-y: auto; min-height: 0; }
-    .settings-card::-webkit-scrollbar { width: 6px; }
-    .settings-card::-webkit-scrollbar-thumb { border-radius: 99px; background: #cbd5e1; }
-    .settings-card .panel-head { margin-bottom: 6px !important; }
-    .settings-card .panel-desc { display: none; }
+    .side-panel { display: flex; flex-direction: column; padding: 12px; overflow: hidden; }
+    .side-panel-card { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+    .side-mode-segmented {
+      display: inline-flex;
+      padding: 3px;
+      gap: 2px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f1f5f9;
+    }
+    .side-tab {
+      border: 0;
+      border-radius: 7px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 780;
+      color: var(--muted);
+      background: transparent;
+      transition: all .15s ease;
+      cursor: pointer;
+    }
+    .side-tab:hover { color: var(--text); }
+    .side-tab.active {
+      color: var(--blue);
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, .08);
+    }
+    .side-tab-content { flex: 1 1 0; min-height: 0; overflow-y: auto; padding-top: 6px; }
+    .side-tab-content::-webkit-scrollbar { width: 6px; }
+    .side-tab-content::-webkit-scrollbar-thumb { border-radius: 99px; background: #cbd5e1; }
+    .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .form-grid { display: grid; gap: 6px; }
     .field { display: grid; gap: 3px; }
     .field-label { height: 16px; color: var(--soft); font-size: 11px; font-weight: 780; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -738,49 +762,50 @@
       </section>
 
       <aside class="side-panel">
-        <section class="settings-card">
-          <div class="panel-head" style="margin-bottom:12px; display:flex; flex-direction:column; gap:6px; width:100%;">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
-              <h2 class="panel-title" data-i18n="settingsTitle">測試設定</h2>
-              <button id="resetSettingsBtn" class="clear-btn" type="button" data-i18n="resetDefaults">還原預設設定</button>
+        <section class="side-panel-card">
+          <div class="panel-head" style="margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
+            <div class="side-mode-segmented" role="tablist" aria-label="Side panel mode">
+              <button id="tabSettingsBtn" type="button" class="side-tab active" data-tab="settings" role="tab" aria-selected="true" data-i18n="settingsTitle">測試設定</button>
+              <button id="tabLogBtn" type="button" class="side-tab" data-tab="log" role="tab" aria-selected="false" data-i18n="eventLogTitle">網路事件紀錄</button>
             </div>
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
-              <p class="panel-desc" data-i18n="settingsHelp" style="margin:0;">調整端點、採樣間隔與逾時門檻，下一次採樣即生效。</p>
-              <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff; flex-shrink:0;" title="Active Probe Target">Active: —</span>
+            <div id="settingsHeaderActions" class="header-actions">
+              <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff;" title="Active Probe Target">Active: —</span>
+              <button id="resetSettingsBtn" class="clear-btn" type="button" data-i18n="resetDefaults">還原預設</button>
             </div>
-          </div>
-          <div class="form-grid">
-            <div class="number-grid" style="grid-template-columns: repeat(2, 1fr);">
-              <label id="fieldInterval" class="field" data-tooltip="採樣間隔 (限制範圍: 200 ~ 2000 ms)"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
-              <label id="fieldTimeout" class="field" data-tooltip="逾時門檻 (限制範圍: 1000 ~ 5000 ms)"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="1000" max="5000" step="100" /><span>ms</span></span></label>
-              <label id="fieldFailover" class="field" data-tooltip="失敗切換門檻 (限制範圍: 3 ~ 10 次)"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="3" max="10" step="1" /><span data-i18n="timesUnit">次</span></span></label>
-              <label id="fieldPercentileN" class="field" data-tooltip="樣本數 N (限制範圍: 30 ~ 500 筆)"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="30" max="500" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
-              <label id="fieldAutoStop" class="field" style="grid-column: span 2;" data-tooltip="自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="3" selected data-i18n="autoStop3">3 分鐘</option><option value="1" data-i18n="autoStop1">1 分鐘</option><option value="2" data-i18n="autoStop2">2 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="10" data-i18n="autoStop10">10 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
-            </div>
-            <label id="stressToggleRow" class="toggle-row" for="stressToggle">
-              <span><span class="toggle-title" data-i18n="stressTitle">模擬下載速度</span><span id="stressHelp" class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
-              <input id="stressToggle" type="checkbox" />
-            </label>
-            <div class="action-grid">
-              <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
-              <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
-            </div>
-            <div id="actionToast" class="toast"></div>
-            <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
-            <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
-            <label class="field"><span class="field-label" data-i18n="downloadLabel">下載測試檔 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
-          </div>
-        </section>
-
-        <section class="log-card">
-          <div id="logHead" class="log-head">
-            <div style="min-width:0; flex:1;"><h2 class="log-title" data-i18n="eventLogTitle">網路事件紀錄</h2><p class="log-subtitle" data-i18n="eventLogHelp">尖峰、逾時、離線狀態會記錄在這裡。</p></div>
-            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <div id="logHeaderActions" class="header-actions" style="display: none;">
               <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
-              <button id="toggleLogCollapseBtn" class="clear-btn" type="button" aria-expanded="true" data-i18n="collapse">收合</button>
             </div>
           </div>
-          <div id="eventLog" class="event-log"></div>
+
+          <!-- Tab 1: 測試設定 -->
+          <div id="settingsTabContent" class="side-tab-content active">
+            <div class="form-grid">
+              <div class="number-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <label id="fieldInterval" class="field" data-tooltip="採樣間隔 (限制範圍: 200 ~ 2000 ms)"><span class="field-label" data-i18n="intervalLabel">採樣間隔</span><span class="number-wrap"><input id="intervalInput" type="number" min="200" max="2000" step="50" /><span>ms</span></span></label>
+                <label id="fieldTimeout" class="field" data-tooltip="逾時門檻 (限制範圍: 1000 ~ 5000 ms)"><span class="field-label" data-i18n="timeoutLabel">逾時門檻</span><span class="number-wrap"><input id="timeoutInput" type="number" min="1000" max="5000" step="100" /><span>ms</span></span></label>
+                <label id="fieldFailover" class="field" data-tooltip="失敗切換門檻 (限制範圍: 3 ~ 10 次)"><span class="field-label" data-i18n="failoverThresholdLabel">失敗切換門檻</span><span class="number-wrap"><input id="failoverThresholdInput" type="number" min="3" max="10" step="1" /><span data-i18n="timesUnit">次</span></span></label>
+                <label id="fieldPercentileN" class="field" data-tooltip="樣本數 N (限制範圍: 30 ~ 500 筆)"><span class="field-label" data-i18n="percentileNLabel">樣本數 (N)</span><span class="number-wrap"><input id="percentileNInput" type="number" min="30" max="500" step="10" /><span data-i18n="sampleUnit">筆</span></span></label>
+                <label id="fieldAutoStop" class="field" style="grid-column: span 2;" data-tooltip="自動停止 (限制: 1, 2, 3, 5, 10, 30, 60 分鐘或無限制)"><span class="field-label" data-i18n="autoStopLabel">自動停止</span><select id="autoStopSelect" class="input" style="font-weight:700; background:#f8fafc;"><option value="3" selected data-i18n="autoStop3">3 分鐘</option><option value="1" data-i18n="autoStop1">1 分鐘</option><option value="2" data-i18n="autoStop2">2 分鐘</option><option value="5" data-i18n="autoStop5">5 分鐘</option><option value="10" data-i18n="autoStop10">10 分鐘</option><option value="30" data-i18n="autoStop30">30 分鐘</option><option value="60" data-i18n="autoStop60">60 分鐘</option><option value="0" data-i18n="autoStopNever">無限制 (永遠執行)</option></select></label>
+              </div>
+              <label id="stressToggleRow" class="toggle-row" for="stressToggle">
+                <span><span class="toggle-title" data-i18n="stressTitle">模擬下載速度</span><span id="stressHelp" class="toggle-help" data-i18n="stressHelp">背景下載會與延遲測量並行。</span></span>
+                <input id="stressToggle" type="checkbox" />
+              </label>
+              <div class="action-grid">
+                <button id="exportScreenshotBtn" class="btn secondary-sky" type="button" data-i18n="exportScreenshot">匯出/複製 截圖</button>
+                <button id="exportCsvBtn" class="btn secondary-green" type="button" data-i18n="exportCsv">匯出 CSV</button>
+              </div>
+              <div id="actionToast" class="toast"></div>
+              <label class="field"><span class="field-label" data-i18n="endpointLabel">延遲探測端點 URL</span><input id="endpointInput" class="input" autocomplete="off" /></label>
+              <label class="field"><span class="field-label" data-i18n="fallbackEndpointLabel">備用探測端點 URL</span><input id="fallbackEndpointInput" class="input" autocomplete="off" /></label>
+              <label class="field"><span class="field-label" data-i18n="downloadLabel">下載測試檔 URL</span><input id="downloadInput" class="input" autocomplete="off" /></label>
+            </div>
+          </div>
+
+          <!-- Tab 2: 網路事件紀錄 -->
+          <div id="logTabContent" class="side-tab-content" style="display: none;">
+            <div id="eventLog" class="event-log"></div>
+          </div>
         </section>
       </aside>
     </main>
@@ -1231,7 +1256,9 @@
       maxLatency: $('maxLatency'), latencyTrend: $('latencyTrend'), jitter: $('jitter'), lossRate: $('lossRate'),
       requestCount: $('requestCount'), failCount: $('failCount'), maxSpike: $('maxSpike'), stressState: $('stressState'),
       bufferbloatDelta: $('bufferbloatDelta'), startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'), resetSettingsBtn: $('resetSettingsBtn'),
-      clearLogBtn: $('clearLogBtn'), logHead: $('logHead'), toggleLogCollapseBtn: $('toggleLogCollapseBtn'), activeEndpointBadge: $('activeEndpointBadge'),
+      clearLogBtn: $('clearLogBtn'), activeEndpointBadge: $('activeEndpointBadge'),
+      tabSettingsBtn: $('tabSettingsBtn'), tabLogBtn: $('tabLogBtn'), settingsTabContent: $('settingsTabContent'), logTabContent: $('logTabContent'),
+      settingsHeaderActions: $('settingsHeaderActions'), logHeaderActions: $('logHeaderActions'),
       clientIpChip: $('clientIpChip'), clientNodeChip: $('clientNodeChip'), clientLocChip: $('clientLocChip'),
       fieldInterval: $('fieldInterval'), fieldTimeout: $('fieldTimeout'), fieldFailover: $('fieldFailover'), fieldPercentileN: $('fieldPercentileN'), fieldAutoStop: $('fieldAutoStop'),
       endpointInput: $('endpointInput'), fallbackEndpointInput: $('fallbackEndpointInput'), downloadInput: $('downloadInput'), intervalInput: $('intervalInput'),
@@ -2651,22 +2678,24 @@
     if (els.resetBtn) els.resetBtn.onclick = reset;
     if (els.resetSettingsBtn) els.resetSettingsBtn.onclick = resetSettingsToDefault;
     if (els.clearLogBtn) els.clearLogBtn.onclick = () => { state.eventLog = []; renderLog(); };
-    function toggleLogCollapse() {
-      const logCard = els.eventLog ? els.eventLog.closest('.log-card') : null;
-      if (!logCard) return;
-      const isCollapsed = logCard.classList.toggle('collapsed');
-      if (els.toggleLogCollapseBtn) {
-        els.toggleLogCollapseBtn.textContent = isCollapsed ? t('expand') : t('collapse');
-        els.toggleLogCollapseBtn.setAttribute('aria-expanded', !isCollapsed ? 'true' : 'false');
+    function switchSideTab(targetTab) {
+      const isSettings = targetTab === 'settings';
+      if (els.tabSettingsBtn) {
+        els.tabSettingsBtn.classList.toggle('active', isSettings);
+        els.tabSettingsBtn.setAttribute('aria-selected', isSettings ? 'true' : 'false');
       }
+      if (els.tabLogBtn) {
+        els.tabLogBtn.classList.toggle('active', !isSettings);
+        els.tabLogBtn.setAttribute('aria-selected', !isSettings ? 'true' : 'false');
+      }
+      if (els.settingsTabContent) els.settingsTabContent.style.display = isSettings ? 'block' : 'none';
+      if (els.logTabContent) els.logTabContent.style.display = !isSettings ? 'block' : 'none';
+      if (els.settingsHeaderActions) els.settingsHeaderActions.style.display = isSettings ? 'flex' : 'none';
+      if (els.logHeaderActions) els.logHeaderActions.style.display = !isSettings ? 'flex' : 'none';
     }
 
-    if (els.logHead) {
-      els.logHead.addEventListener('click', (e) => {
-        if (e.target && (e.target.id === 'clearLogBtn' || e.target.closest('#clearLogBtn'))) return;
-        toggleLogCollapse();
-      });
-    }
+    if (els.tabSettingsBtn) els.tabSettingsBtn.addEventListener('click', () => switchSideTab('settings'));
+    if (els.tabLogBtn) els.tabLogBtn.addEventListener('click', () => switchSideTab('log'));
 
     if (els.exportScreenshotBtn) els.exportScreenshotBtn.addEventListener('click', exportScreenshot);
     if (els.exportCsvBtn) els.exportCsvBtn.addEventListener('click', exportCsv);
