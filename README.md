@@ -35,8 +35,8 @@ python3 -m http.server 8080
 
 | 檔案 | 說明 |
 |------|------|
-| `index.html` | 正式版主程式（v1.0.12，包含 URL 自動化引擎、還原預設、短板封頂對數模型與資源優化） |
-| `test.html` | 測試版主程式（v1.0.13-rc，包含網域感知對照排障、診斷標的免責註記與 Auto-Stop 3分鐘預設） |
+| `index.html` | 正式版主程式（v1.0.13，包含網域感知對照排障、Segmented Tab 整合、URL 自動化與 10MB 預設） |
+| `test.html` | 測試版主程式（v1.0.13，包含網域感知對照排障、Segmented Tab 整合、URL 自動化與 10MB 預設） |
 | `lagcheck_auto.py` | Python Playwright 無頭自動化測試與 JSON / PNG 下載工具 |
 
 依賴：Chart.js 4.4.7（CDN，含 SRI）。CDN 暫時不可用時仍可正常連線量測與匯出，僅圖表不顯示。
@@ -212,8 +212,8 @@ python3 -m http.server 8080
 
 | File | Description |
 |------|-------------|
-| `index.html` | Single-file application for Production (v1.0.12 with URL Automation Engine, Reset Defaults, bottleneck-capped scale, and energy-saving safeguards) |
-| `test.html` | Staging single-file application (v1.0.13-rc with domain-aware troubleshooting, target scope disclaimer & 3-min default auto-stop) |
+| `index.html` | Single-file application for Production (v1.0.13 with domain-aware troubleshooting, Segmented Tab consolidation & 10MB default download) |
+| `test.html` | Staging single-file application (v1.0.13 with domain-aware troubleshooting, Segmented Tab consolidation & 10MB default download) |
 | `lagcheck_auto.py` | Python Playwright headless automation script for automated probing & JSON/PNG report downloads |
 
 *Dependencies*: Chart.js 4.4.7 via CDN (with SRI). Even if the CDN is temporarily unreachable, latency probing and data exports remain fully functional (only line charts are hidden).
