@@ -2,7 +2,7 @@
 
 Browser-based real-time network stability diagnostic tool. Measures **connection latency**, **jitter**, **fail/timeout rate**, **network egress (IP/Node/Loc)**, and **download speed simulation under load (bufferbloat)**. Ideal for office IT, warehouse Logistics PDA scanning, online video calls, and remote desktop troubleshooting.
 
-目前版本 / Version: **v1.0.12**
+目前版本 / Version: **v1.0.13**
 
 [ 中文 ](#-中文) | [ English ](#-english)
 
@@ -43,9 +43,10 @@ python3 -m http.server 8080
 
 ---
 
-### 核心功能 (v1.0.12)
+### 核心功能 (v1.0.13)
 
-- **即時連線探測**：預設間隔 500ms（主要端點 Cloudflare `cdn-cgi/trace`，備用端點 AWS `checkip.amazonaws.com`）。
+- **即時連線探測**：預設間隔 500ms（主要端點 AWS `checkip.amazonaws.com`，備用端點 Cloudflare `one.one.one.one/cdn-cgi/trace`）。
+- **📱 跨裝置全平臺相容**：專為電腦 PC、iOS / Android 手機及倉庫 PDA 掃描槍設計。高頻探測採用原生 CORS 相容與無重導向 (Zero-Redirect) 請求，徹底消除 iOS WebKit 沙箱與 302 轉址攔截造成的探測誤判。
 - **自動備援探測 (Failover)**：連續失敗達門檻自動切換探測端點，並自動上記日誌。
 - **還原預設設定 (Reset Defaults)**：測試設定標題旁附有「還原預設」按鈕，可一鍵恢復原廠預設值與 Failover 狀態。
 - **⚡ URL 參數自動化引擎 (URL Automation)**：
@@ -55,7 +56,7 @@ python3 -m http.server 8080
   - **Webhook 自動回傳**：支援 `webhook=https://...` 測試完成時自動以 HTTP POST 將 JSON 報告傳回後端。
 - **抖動與尖峰記錄**：滾動計算 Jitter 與 MAD，自動擷取異常延遲尖峰。
 - **失敗／逾時可靠度**：結合 Wilson 信心區間，精準反映真實丟包與 Timeout。
-- **網路出口資訊 (IP / Node / Loc)**：自動解析公網 IP、Cloudflare 資料中心代碼 (`TPE` 台北) 與地理位置 (`TW`)。
+- **🌐 網路出口資訊多源備援 (Multi-Source Trace Provider)**：自動從多源 (`one.one.one.one/cdn-cgi/trace` 與 `www.cloudflare.com`) 解析公網 IP、Cloudflare 資料中心代碼 (`TPE` 台北) 與地理位置 (`TW`)，若格式受到阻擋，自動備援向 AWS 補全 IP，確保頂部資訊晶片 100% 穩定展示。
 - **模擬下載速度**：並行大流量背景下載，評估頻寬吃滿時的傳輸速度與 Bufferbloat 延遲衝擊。
 - **分頁省電保護**：切換至背景分頁時自動暫停 Canvas 繪製，保護 CPU/GPU 資源。
 - **雙語切換**：支援 Traditional Chinese 與 English 即時動態切換。
@@ -220,9 +221,10 @@ python3 -m http.server 8080
 
 ---
 
-### Key Features (v1.0.12)
+### Key Features (v1.0.13)
 
-- **Real-Time Latency Probing**: Default 500ms interval (Primary endpoint Cloudflare `cdn-cgi/trace`, Fallback endpoint AWS `checkip.amazonaws.com`).
+- **Real-Time Latency Probing**: Default 500ms interval (Primary endpoint AWS `checkip.amazonaws.com`, Fallback endpoint Cloudflare `one.one.one.one/cdn-cgi/trace`).
+- **📱 Cross-Device & Platform Compatibility**: Tailored for Desktop PCs, iOS/Android Mobiles, and Warehouse Logistics PDAs. High-frequency probing uses native CORS-compliant, zero-redirect requests to eliminate false positives caused by iOS WebKit sandbox restrictions or 302 redirects.
 - **Automated Failover Probing**: Automatically switches active probe endpoint upon consecutive failure threshold with instant event logging.
 - **Reset to Defaults**: Dedicated "Reset Defaults" button in settings panel to restore default configurations and Failover status with a single click.
 - **⚡ URL Automation Engine**:
@@ -232,7 +234,7 @@ python3 -m http.server 8080
   - **Webhook Integration**: Supports `webhook=https://...` to automatically HTTP POST JSON diagnostic reports to backend servers.
 - **Jitter & Spike Tracking**: Rolling calculation of Jitter and MAD (Median Absolute Deviation), with automatic spike logging.
 - **Reliability & Timeout Rate**: Applies Wilson score confidence interval for accurate loss estimation under small sample sizes.
-- **Network Egress Info (IP / Node / Loc)**: Parses client public IP, Cloudflare edge data center node (`TPE` = Taipei), and country location (`TW`).
+- **🌐 Multi-Source Trace Provider (IP / Node / Loc)**: Multi-source fallback (`one.one.one.one/cdn-cgi/trace` and `www.cloudflare.com`) for public IP, Cloudflare edge data center node (`TPE` = Taipei), and country location (`TW`), with automated AWS fallback for 100% chip display stability.
 - **Simulate Download Speed**: Concurrent background downloads to evaluate bandwidth throughput and Bufferbloat latency impact under heavy load.
 - **Background Energy Safeguard**: Automatically pauses Canvas rendering in hidden browser tabs (Page Visibility API) to save GPU/CPU resources.
 - **Dynamic I18N**: Real-time switching between Traditional Chinese and English.
