@@ -751,8 +751,8 @@
             <div class="panel-title-wrap">
               <h2 id="chartTitle" class="panel-title" data-i18n="chartTitle">即時曲線</h2>
               <div class="chart-mode-segmented" role="tablist" aria-label="Chart mode">
-                <button id="modeLiveBtn" type="button" class="mode-tab active" data-mode="live" data-i18n="modeLive" role="tab" aria-selected="true">即時曲線</button>
-                <button id="modePercentileBtn" type="button" class="mode-tab" data-mode="percentile" data-i18n="modePercentile" role="tab" aria-selected="false">即時百分位</button>
+                <button id="modeLiveBtn" type="button" class="mode-tab" data-mode="live" data-i18n="modeLive" role="tab" aria-selected="false">即時曲線</button>
+                <button id="modePercentileBtn" type="button" class="mode-tab active" data-mode="percentile" data-i18n="modePercentile" role="tab" aria-selected="true">即時百分位</button>
               </div>
             </div>
             <p id="chartHelp" class="panel-desc" data-i18n="chartHelp">依時間窗顯示最近約 60 秒的連線延遲與抖動；紅色為失敗／逾時，橘色為尖峰。</p>
@@ -1244,7 +1244,7 @@
     });
 
     const state = {
-      lang: 'zh', chartMode: 'live', running: false, stress: false, loopTimer: null, inFlightProbe: null,
+      lang: 'en', chartMode: 'percentile', running: false, stress: false, loopTimer: null, inFlightProbe: null,
       stressControllers: new Set(), stressBytes: 0, stressStartTime: null, stressCompleted: false, stressAvgSpeed: null,
       startTime: null, sent: 0, failed: 0, samples: [], eventLog: [],
       netTraceInfo: { ip: '—', colo: '—', loc: '—' },
