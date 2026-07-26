@@ -6,7 +6,7 @@ Browser-based real-time network stability diagnostic tool. Measures **connection
 
 [ 中文 ](#-中文) | [ English ](#-english)
 
-![LagCheck Interface Preview](screenshots/preview.png)
+![LagCheck Interface Preview](screenshots/sample.png)
 
 ---
 
