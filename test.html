@@ -765,14 +765,14 @@
         <section class="side-panel-card">
           <div class="panel-head" style="margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
             <div class="side-mode-segmented" role="tablist" aria-label="Side panel mode">
-              <button id="tabSettingsBtn" type="button" class="side-tab active" data-tab="settings" role="tab" aria-selected="true" data-i18n="settingsTitle">測試設定</button>
-              <button id="tabLogBtn" type="button" class="side-tab" data-tab="log" role="tab" aria-selected="false" data-i18n="eventLogTitle">網路事件紀錄</button>
+              <button id="tabSettingsBtn" type="button" class="side-tab active" data-tab="settings" role="tab" aria-selected="true" data-i18n="settingsTitle">Settings</button>
+              <button id="tabLogBtn" type="button" class="side-tab" data-tab="log" role="tab" aria-selected="false" data-i18n="eventLogTitle">Log</button>
             </div>
-            <div id="settingsHeaderActions" class="header-actions">
+            <div id="settingsHeaderActions" class="header-actions" style="margin-left: auto;">
               <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff;" title="Active Probe Target">Active: —</span>
               <button id="resetSettingsBtn" class="clear-btn" type="button" data-i18n="resetDefaults">還原預設</button>
             </div>
-            <div id="logHeaderActions" class="header-actions" style="display: none;">
+            <div id="logHeaderActions" class="header-actions" style="display: none; margin-left: auto;">
               <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
             </div>
           </div>
@@ -940,12 +940,12 @@
         settingsBoundaryDesc: '💡 測試設定邊界限制：採樣間隔 (200~2000ms)、逾時門檻 (1000~5000ms)、失敗切換 (3~10次)、樣本數 (30~500筆)。',
         autoStopLabel: '自動停止', autoStop1: '1 分鐘', autoStop2: '2 分鐘', autoStop3: '3 分鐘', autoStop5: '5 分鐘', autoStop10: '10 分鐘', autoStop30: '30 分鐘', autoStop60: '60 分鐘', autoStopNever: '無限制 (永遠執行)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
-        start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: '測試設定', resetDefaults: '還原預設設定',
+        start: '開始', pause: '暫停', reset: '重設', monitoring: '🟢 監測中', settingsTitle: 'Settings', resetDefaults: '還原預設',
         settingsHelp: '調整端點、採樣間隔與逾時門檻，下一次採樣即生效。',
         activeEndpointLabel: '當前探測端點',
         endpointLabel: '延遲探測端點 URL', fallbackEndpointLabel: '備用探測端點 URL', downloadLabel: '下載測試檔 URL', intervalLabel: '採樣間隔', timeoutLabel: '逾時門檻', failoverThresholdLabel: '失敗切換門檻', timesUnit: '次',
         stressTitle: '模擬下載速度', stressHelp: '背景下載會與延遲測量並行。',
-        exportScreenshot: '匯出/複製 截圖', exportCsv: '匯出 CSV', eventLogTitle: '網路事件紀錄', collapse: '收合', expand: '展開',
+        exportScreenshot: '匯出/複製 截圖', exportCsv: '匯出 CSV', eventLogTitle: 'Log', collapse: '收合', expand: '展開',
         eventLogHelp: '尖峰、逾時、離線狀態會記錄在這裡。', clear: '清除',
         live: '即時監測', paused: '已暫停', offline: '離線', stress: '下載測試中', idle: '閒置', underLoad: '下載中',
         sentShort: '次', noEvents: '暫無事件。開始測試後，尖峰與逾時會自動記錄。',
@@ -1050,12 +1050,12 @@
         settingsBoundaryDesc: '💡 Input Limits: Interval (200~2000ms), Timeout (1000~5000ms), Failover (3~10 fails), Sample Size N (30~500 pts).',
         autoStopLabel: 'Auto-Stop', autoStop1: '1 Min', autoStop2: '2 Min', autoStop3: '3 Min', autoStop5: '5 Min', autoStop10: '10 Min', autoStop30: '30 Min', autoStop60: '60 Min', autoStopNever: 'Unlimited (Continuous)',
         p50Label: 'P50', p75Label: 'P75', p90Label: 'P90', p95Label: 'P95', p99Label: 'P99',
-        start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Test Settings', resetDefaults: 'Reset Defaults',
+        start: 'Start', pause: 'Pause', reset: 'Reset', monitoring: '🟢 Monitoring', settingsTitle: 'Settings', resetDefaults: 'Reset Defaults',
         settingsHelp: 'Adjust endpoint, sample interval, and timeout threshold. Changes apply on the next sample.',
         activeEndpointLabel: 'Active Endpoint',
         endpointLabel: 'Latency Probe Endpoint URL', fallbackEndpointLabel: 'Fallback Probe Endpoint URL', downloadLabel: 'Download Test URL', intervalLabel: 'Sample Interval', timeoutLabel: 'Timeout Limit', failoverThresholdLabel: 'Failover Limit', timesUnit: 'fails',
         stressTitle: 'Simulate Download Speed', stressHelp: 'Background downloads run alongside latency measurement.',
-        exportScreenshot: 'Export/Copy PNG', exportCsv: 'Export CSV', eventLogTitle: 'Network Event Log', collapse: 'Collapse', expand: 'Expand',
+        exportScreenshot: 'Export/Copy PNG', exportCsv: 'Export CSV', eventLogTitle: 'Log', collapse: 'Collapse', expand: 'Expand',
         eventLogHelp: 'Spikes, timeouts, and offline state are recorded here.', clear: 'Clear',
         live: 'Live', paused: 'Paused', offline: 'Offline', stress: 'Download Test', idle: 'Idle', underLoad: 'Load',
         sentShort: 'sent', noEvents: 'No events yet. Spikes and timeouts will appear here after testing starts.',
