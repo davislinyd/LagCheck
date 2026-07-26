@@ -638,18 +638,21 @@
     .grade-table th, .grade-table td { padding: 8px 10px; border: 1px solid #e2e8f0; text-align: left; }
     .grade-table th { background: #f1f5f9; color: #1e293b; font-weight: 600; }
 
-    .troubleshoot-card {
-      margin-top: 12px; padding: 14px 18px; border-radius: 12px;
-      background: #fff5f5; border: 1px solid #fecaca; border-left: 5px solid var(--rose);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.05);
-      animation: fadeIn 0.3s ease-out;
+    .topbar-alert-banner {
+      margin-top: 6px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+      border-left: 4px solid var(--rose);
+      animation: fadeIn 0.25s ease-out;
     }
-    .troubleshoot-head {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    .topbar-alert-text {
+      font-size: 0.8rem;
+      color: #991b1b;
+      font-weight: 600;
+      line-height: 1.45;
     }
-    .troubleshoot-title { font-size: 0.9rem; font-weight: 700; color: #991b1b; margin: 0; display: flex; align-items: center; gap: 6px; }
-    .troubleshoot-steps { margin: 0; padding-left: 18px; font-size: 0.825rem; color: #7f1d1d; line-height: 1.65; }
-    .troubleshoot-steps li { margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -705,17 +708,10 @@
           <div class="metric-foot"><span data-i18n="bufferDeltaLabel">壅塞延遲差</span> <span id="bufferbloatDelta">—</span></div>
         </article>
       </section>
+      <div id="troubleshootingCard" class="topbar-alert-banner" style="display: none;">
+        <div id="troubleshootDynamicReason" class="topbar-alert-text"></div>
+      </div>
     </header>
-
-    <div id="troubleshootingCard" class="troubleshoot-card" style="display: none;">
-      <div class="troubleshoot-head" id="troubleshootHead">
-        <h3 class="troubleshoot-title">
-          <span data-i18n="troubleshootTitle">💡 連線診斷指引</span>
-        </h3>
-      </div>
-      <div id="troubleshootDynamicReason" style="font-size: 0.825rem; color: #991b1b; font-weight: 600; margin: 8px 0 0 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #fecaca; line-height: 1.5;">
-      </div>
-    </div>
 
     <div id="chartMissing" class="cdn-banner" role="alert" data-i18n="chartMissing">圖表函式庫載入失敗，曲線無法顯示。請檢查網路或 CDN 連線後重新整理。</div>
 
