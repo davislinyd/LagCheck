@@ -69,3 +69,5 @@
    * **標準發布與驗證流程**：
      1. 任何新功能研發、實驗性邏輯或 candidate 版本（如 `v1.0.x-rc`）變更，必須先同步更新至 `test.html`。
      2. 透過線上測試網址 (`test.html`) 驗證穩定無誤後，方可將程式碼覆蓋至 `index.html` 進行正式 Release。
+5. **規劃檔 HTML 格式規範 (HTML-Only Implementation Plan Protocol)**：
+   * 本專案未來所有開發規劃檔 (`Implementation Plan`) **僅需提供獨立 HTML 格式檔 (`implementation_plan.html`)**，無需額外產出 `.md` 格式規劃檔。
