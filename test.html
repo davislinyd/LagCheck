@@ -439,25 +439,13 @@
       visibility: visible;
       transform: translateY(0);
     }
-    #fieldInterval[data-tooltip]::after, #fieldFailover[data-tooltip]::after {
+    #fieldInterval[data-tooltip]::after, #fieldFailover[data-tooltip]::after, #fieldAutoStop[data-tooltip]::after {
       left: 0;
       right: auto;
     }
-    #fieldTimeout[data-tooltip]::after, #fieldPercentileN[data-tooltip]::after {
+    #fieldTimeout[data-tooltip]::after, #fieldPercentileN[data-tooltip]::after, #fieldStress[data-tooltip]::after {
       right: 0;
       left: auto;
-    }
-    #fieldAutoStop[data-tooltip]::after, .toggle-row[data-tooltip]::after {
-      top: auto;
-      bottom: calc(100% + 4px);
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%) translateY(3px);
-    }
-    #fieldAutoStop[data-tooltip]:hover::after, .toggle-row[data-tooltip]:hover::after {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
     }
     .toggle-title { display: block; color: var(--soft); font-size: 12px; line-height: 16px; font-weight: 800; }
     .toggle-help { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
