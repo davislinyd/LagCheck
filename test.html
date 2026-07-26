@@ -763,17 +763,21 @@
 
       <aside class="side-panel">
         <section class="side-panel-card">
-          <div class="panel-head" style="margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
-            <div class="side-mode-segmented" role="tablist" aria-label="Side panel mode">
-              <button id="tabSettingsBtn" type="button" class="side-tab active" data-tab="settings" role="tab" aria-selected="true" data-i18n="settingsTitle">Settings</button>
-              <button id="tabLogBtn" type="button" class="side-tab" data-tab="log" role="tab" aria-selected="false" data-i18n="eventLogTitle">Log</button>
+          <div class="panel-head" style="margin-bottom:8px; display:flex; flex-direction:column; gap:6px; width:100%;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;">
+              <div class="side-mode-segmented" role="tablist" aria-label="Side panel mode">
+                <button id="tabSettingsBtn" type="button" class="side-tab active" data-tab="settings" role="tab" aria-selected="true" data-i18n="settingsTitle">Settings</button>
+                <button id="tabLogBtn" type="button" class="side-tab" data-tab="log" role="tab" aria-selected="false" data-i18n="eventLogTitle">Log</button>
+              </div>
+              <div id="settingsHeaderActions" class="header-actions">
+                <button id="resetSettingsBtn" class="clear-btn" type="button" data-i18n="resetDefaults">還原預設</button>
+              </div>
+              <div id="logHeaderActions" class="header-actions" style="display: none;">
+                <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
+              </div>
             </div>
-            <div id="settingsHeaderActions" class="header-actions" style="margin-left: auto;">
+            <div id="activeBadgeRow" style="display:flex; align-items:center; justify-content:flex-start; width:100%;">
               <span id="activeEndpointBadge" class="version" style="color:var(--blue); border-color:#bfdbfe; background:#eff6ff;" title="Active Probe Target">Active: —</span>
-              <button id="resetSettingsBtn" class="clear-btn" type="button" data-i18n="resetDefaults">還原預設</button>
-            </div>
-            <div id="logHeaderActions" class="header-actions" style="display: none; margin-left: auto;">
-              <button id="clearLogBtn" class="clear-btn" type="button" data-i18n="clear">清除</button>
             </div>
           </div>
 
@@ -2692,6 +2696,7 @@
       if (els.logTabContent) els.logTabContent.style.display = !isSettings ? 'block' : 'none';
       if (els.settingsHeaderActions) els.settingsHeaderActions.style.display = isSettings ? 'flex' : 'none';
       if (els.logHeaderActions) els.logHeaderActions.style.display = !isSettings ? 'flex' : 'none';
+      if ($('activeBadgeRow')) $('activeBadgeRow').style.display = isSettings ? 'flex' : 'none';
     }
 
     if (els.tabSettingsBtn) els.tabSettingsBtn.addEventListener('click', () => switchSideTab('settings'));
