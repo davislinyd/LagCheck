@@ -1522,22 +1522,42 @@
     }
 
     async function fetchTraceInfo() {
-      try {
-        const res = await fetch('https://www.cloudflare.com/cdn-cgi/trace', { cache: 'no-store', credentials: 'omit' });
-        const text = await res.text();
-        if (!text) return;
-        for (const line of text.split('\n')) {
-          const [k, v] = line.split('=');
-          if (k && v) {
-            const key = k.trim();
-            const val = v.trim();
-            if (key === 'ip') state.netTraceInfo.ip = val;
-            if (key === 'colo') state.netTraceInfo.colo = val;
-            if (key === 'loc') state.netTraceInfo.loc = val;
+      const sources = [
+        'https://one.one.one.one/cdn-cgi/trace',
+        'https://www.cloudflare.com/cdn-cgi/trace'
+      ];
+      for (const src of sources) {
+        try {
+          const res = await fetch(src, { cache: 'no-cache', credentials: 'omit' });
+          const text = await res.text();
+          if (!text) continue;
+          let foundCount = 0;
+          for (const line of text.split('\n')) {
+            const [k, v] = line.split('=');
+            if (k && v) {
+              const key = k.trim();
+              const val = v.trim();
+              if (key === 'ip') { state.netTraceInfo.ip = val; foundCount++; }
+              if (key === 'colo') { state.netTraceInfo.colo = val; foundCount++; }
+              if (key === 'loc') { state.netTraceInfo.loc = val; foundCount++; }
+            }
           }
-        }
-        updateNetInfoChips();
-      } catch (e) { /* ignore fallback */ }
+          if (foundCount > 0) {
+            updateNetInfoChips();
+            break;
+          }
+        } catch (e) { /* try next source */ }
+      }
+      if (!state.netTraceInfo.ip) {
+        try {
+          const res = await fetch('https://checkip.amazonaws.com', { cache: 'no-cache', credentials: 'omit' });
+          const text = await res.text();
+          if (text && text.trim()) {
+            state.netTraceInfo.ip = text.trim();
+            updateNetInfoChips();
+          }
+        } catch (e) {}
+      }
     }
 
     fetchTraceInfo();
