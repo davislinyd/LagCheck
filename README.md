@@ -51,7 +51,7 @@ python3 -m http.server 8080
 - **還原預設設定 (Reset Defaults)**：測試設定標題旁附有「還原預設」按鈕，可一鍵恢復原廠預設值與 Failover 狀態。
 - **⚡ URL 參數自動化引擎 (URL Automation)**：
   - **人性化網址解析**：輸入 `host=www.google.com` 或 `target=google.com` 時自動補全 `https://`，免輸入 `%3A%2F%2F`。
-  - **零點擊自動測試**：支援 `autostart=1`、`samples=30`、`interval=200`、`stress=1`。
+  - **零點擊自動測試**：支援 `autostart=1`、`samples=100`、`interval=200`、`stress=1`。
   - **多格式自動導出**：支援 `export=json,png` 或 `export=all`，測試完成自動下載 JSON 數據檔與高畫質 PNG 截圖。
   - **Webhook 自動回傳**：支援 `webhook=https://...` 測試完成時自動以 HTTP POST 將 JSON 報告傳回後端。
 - **抖動與尖峰記錄**：滾動計算 Jitter 與 MAD，自動擷取異常延遲尖峰。
@@ -67,7 +67,7 @@ python3 -m http.server 8080
 
 #### 1. 簡潔網址（一鍵探測 Google 並完成後同時下載 JSON 與 PNG 截圖）：
 ```text
-https://davislinyd.github.io/LagCheck/?host=www.google.com&autostart=1&samples=30&export=json,png
+https://davislinyd.github.io/LagCheck/?host=www.google.com&autostart=1&samples=100&export=json,png
 ```
 
 #### 2. 高頻連線抗壓測試 + 完成自動 Webhook 回傳伺服器：
@@ -229,7 +229,7 @@ python3 -m http.server 8080
 - **Reset to Defaults**: Dedicated "Reset Defaults" button in settings panel to restore default configurations and Failover status with a single click.
 - **⚡ URL Automation Engine**:
   - **Smart Protocol Auto-Prefixing**: Automatically prefixes `https://` when passing `host=www.google.com` or `target=google.com` (no `%3A%2F%2F` encoding required).
-  - **Zero-Touch Automated Testing**: Supports `autostart=1`, `samples=30`, `interval=200`, and `stress=1`.
+  - **Zero-Touch Automated Testing**: Supports `autostart=1`, `samples=100`, `interval=200`, and `stress=1`.
   - **Multi-Format Auto Export**: Supports `export=json,png` or `export=all` to automatically download JSON data files and high-res PNG screenshots upon completion.
   - **Webhook Integration**: Supports `webhook=https://...` to automatically HTTP POST JSON diagnostic reports to backend servers.
 - **Jitter & Spike Tracking**: Rolling calculation of Jitter and MAD (Median Absolute Deviation), with automatic spike logging.
@@ -245,7 +245,7 @@ python3 -m http.server 8080
 
 #### 1. Concise Link (One-click Google Probe + Auto JSON & PNG Download):
 ```text
-https://davislinyd.github.io/LagCheck/?host=www.google.com&autostart=1&samples=30&export=json,png
+https://davislinyd.github.io/LagCheck/?host=www.google.com&autostart=1&samples=100&export=json,png
 ```
 
 #### 2. High-Frequency Stress Test + Automated Webhook POST:
