@@ -2203,8 +2203,16 @@
       return state.activeEndpointIndex === 1 ? fallback : primary;
     }
 
+    function isKnownStandardProbe(urlStr) {
+      return urlStr.includes('cloudflare.com/cdn-cgi/trace') || urlStr.includes('checkip.amazonaws.com');
+    }
+
     function buildProbeUrl() {
-      const url = new URL(getActiveProbeUrl());
+      const rawUrl = getActiveProbeUrl();
+      if (isKnownStandardProbe(rawUrl)) {
+        return rawUrl;
+      }
+      const url = new URL(rawUrl);
       url.searchParams.set('_lagcheck_t', `${Date.now()}_${Math.random().toString(16).slice(2)}`);
       return url.toString();
     }
@@ -2215,10 +2223,17 @@
       const timeoutId = setTimeout(() => controller.abort('timeout'), state.settings.timeoutMs);
       const started = performance.now();
       state.sent += 1;
+      const probeUrl = buildProbeUrl();
+      const isStandard = isKnownStandardProbe(probeUrl);
+
       try {
-        await fetch(buildProbeUrl(), {
-          method: 'GET', mode: 'no-cors', cache: 'no-store', credentials: 'omit',
-          redirect: 'follow', signal: controller.signal
+        await fetch(probeUrl, {
+          method: 'GET',
+          mode: 'no-cors',
+          cache: isStandard ? 'no-cache' : 'no-store',
+          credentials: 'omit',
+          redirect: 'follow',
+          signal: controller.signal
         });
         const latency = performance.now() - started;
         clearTimeout(timeoutId);
@@ -2226,6 +2241,17 @@
         recordSample({ status: 'ok', latency, error: '' });
       } catch (error) {
         clearTimeout(timeoutId);
+        if (!controller.signal.aborted && isStandard) {
+          try {
+            await fetch(probeUrl, {
+              method: 'GET', mode: 'no-cors', cache: 'default', credentials: 'omit', signal: controller.signal
+            });
+            const latency = performance.now() - started;
+            state.consecutiveFailures = 0;
+            recordSample({ status: 'ok', latency, error: '' });
+            return;
+          } catch {}
+        }
         state.failed += 1;
         state.consecutiveFailures += 1;
         const reason = controller.signal.aborted ? 'timeout' : 'failed';
