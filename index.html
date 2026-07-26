@@ -1225,8 +1225,8 @@
     }
 
     const DEFAULTS = Object.freeze({
-      endpoint: 'https://www.cloudflare.com/cdn-cgi/trace',
-      fallbackEndpoint: 'https://checkip.amazonaws.com',
+      endpoint: 'https://checkip.amazonaws.com',
+      fallbackEndpoint: 'https://one.one.one.one/cdn-cgi/trace',
       downloadUrl: 'https://speed.cloudflare.com/__down?bytes=10000000',
       intervalMs: 500,
       timeoutMs: 2000,
@@ -2204,7 +2204,7 @@
     }
 
     function isKnownStandardProbe(urlStr) {
-      return urlStr.includes('cloudflare.com/cdn-cgi/trace') || urlStr.includes('checkip.amazonaws.com');
+      return urlStr.includes('cloudflare.com/cdn-cgi/trace') || urlStr.includes('checkip.amazonaws.com') || urlStr.includes('one.one.one.one/cdn-cgi/trace') || urlStr.includes('1.1.1.1/cdn-cgi/trace');
     }
 
     function buildProbeUrl() {
