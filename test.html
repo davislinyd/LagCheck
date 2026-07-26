@@ -2007,15 +2007,15 @@
           const fallbackDomain = getBaseDomain(fallbackHost);
           const isSameDomain = primaryDomain && fallbackDomain && primaryDomain === fallbackDomain;
 
-          // 判斷備用端點是否已累積驗證成功達 3 次
+          // 判斷備用端點驗證狀態
           const fallbackCount = state.fallbackSuccessCount || 0;
           const fallbackVerified = isFailoverSwitched && currentIsOk && fallbackCount >= 3;
-          const fallbackVerifying = isFailoverSwitched && currentIsOk && fallbackCount < 3;
-          const bothFailed = (state.primaryFailed && state.fallbackFailed) || (isFailoverSwitched && !currentIsOk);
+          const fallbackVerifying = isFailoverSwitched && !state.fallbackFailed && !fallbackVerified;
+          const bothFailed = state.primaryFailed && state.fallbackFailed;
 
           const reasonEl = $('troubleshootDynamicReason');
           if (reasonEl) {
-            if (bothFailed || (state.primaryFailed && !fallbackVerified && !fallbackVerifying)) {
+            if (bothFailed) {
               if (isSameDomain) {
                 reasonEl.textContent = t('reasonSameDomain').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
               } else {
@@ -2026,6 +2026,8 @@
                 .replace('{primary}', primaryHost)
                 .replace('{fallback}', fallbackHost)
                 .replace('{count}', String(fallbackCount));
+            } else if (fallbackVerified) {
+              reasonEl.textContent = t('reasonPrimaryFail').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
             } else {
               reasonEl.textContent = t('reasonPrimaryFail').replace('{primary}', primaryHost).replace('{fallback}', fallbackHost);
             }
