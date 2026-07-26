@@ -2194,6 +2194,7 @@
         state.failed += 1;
         state.consecutiveFailures += 1;
         const reason = controller.signal.aborted ? 'timeout' : 'failed';
+        recordSample({ status: reason, latency: null, error: error?.message || reason });
 
         const threshold = state.settings.failoverThreshold || DEFAULTS.failoverThreshold;
         if (state.consecutiveFailures >= threshold) {
@@ -2208,9 +2209,8 @@
           let targetHost = 'Backup Endpoint';
           try { targetHost = new URL(getActiveProbeUrl()).hostname; } catch {}
           addLog('info', 'log_failoverSwitched', { host: targetHost });
+          updateUI({ skipChart: true });
         }
-
-        recordSample({ status: reason, latency: null, error: error?.message || reason });
       } finally {
         if (state.inFlightProbe === controller) state.inFlightProbe = null;
       }
