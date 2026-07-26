@@ -71,3 +71,4 @@
      2. 透過線上測試網址 (`test.html`) 驗證穩定無誤後，方可將程式碼覆蓋至 `index.html` 進行正式 Release。
 5. **規劃檔 HTML 格式規範 (HTML-Only Implementation Plan Protocol)**：
    * 本專案未來所有開發規劃檔 (`Implementation Plan`) **僅需提供獨立 HTML 格式檔 (`implementation_plan.html`)**，無需額外產出 `.md` 格式規劃檔。
+   * 規劃檔 (`implementation_plan.html`) 屬於本機暫存檔，**不得 Commit 至遠端**。必須統一使用本機 `.git/info/exclude` 進行忽略，禁止寫入或建立 `.gitignore` 檔案。
